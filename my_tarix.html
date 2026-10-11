@@ -56,7 +56,7 @@
             border-radius: 12px;
             margin-bottom: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border-left: 4px solid #4caf50;
+            border-left: 4px solid #ffc107;
         }
         .card-header {
             display: flex;
@@ -76,10 +76,9 @@
             color: #cbd5e1;
             margin-bottom: 8px;
         }
-        .status {
-            font-weight: bold;
-            font-size: 13px;
-        }
+        .status-wait { color: #ffc107; font-weight: bold; }
+        .status-ok { color: #4caf50; font-weight: bold; }
+        .status-no { color: #ff3b30; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -102,7 +101,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Telegram foydalanuvchi nomini avtomatik qo'yish
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             document.getElementById('employeeName').value = tg.initDataUnsafe.user.first_name || "Xodim";
         } else {
@@ -119,8 +117,9 @@
                 return;
             }
 
+            let entryId = Date.now();
             let newEntry = {
-                id: Date.now(),
+                id: entryId,
                 employee: employeeName,
                 amount: enteredAmount,
                 comment: enteredComment,
@@ -139,9 +138,9 @@
             myHistory.unshift(newEntry);
             localStorage.setItem('my_given_history', JSON.stringify(myHistory));
 
-            // Botga ma'lumotni yuborish
             tg.sendData(JSON.stringify({
                 type: "given_amount",
+                id: entryId,
                 amount: parseFloat(enteredAmount),
                 comment: enteredComment
             }));
@@ -154,21 +153,46 @@
 
         function loadMyHistory() {
             const container = document.getElementById('myHistoryList');
-            let items = JSON.parse(localStorage.getItem('my_given_history')) || [];
+            
+            // Rahbar panelidagi o'zgargan statuslarni xodim tarixiga sinxronlash uchun admin_given_history'ni tekshiramiz
+            let adminHistory = JSON.parse(localStorage.getItem('admin_given_history')) || [];
+            let myHistory = JSON.parse(localStorage.getItem('my_given_history')) || [];
 
-            if (items.length === 0) {
+            // Admin panelida status o'zgargan bo'lsa, uni xodim tarixida ham yangilaymiz
+            myHistory.forEach(myItem => {
+                let found = adminHistory.find(adm => adm.id === myItem.id);
+                if (found) {
+                    myItem.status = found.status;
+                }
+            });
+            localStorage.setItem('my_given_history', JSON.stringify(myHistory));
+
+            if (myHistory.length === 0) {
                 container.innerHTML = '<div class="history-card"><div class="comment">Hozircha tarix yo\'q.</div></div>';
                 return;
             }
 
             let html = '';
-            items.forEach(item => {
+            myHistory.forEach(item => {
                 let formattedAmount = Number(item.amount).toLocaleString('en-US').replace(/,/g, ' ');
+                
+                let statusClass = "status-wait";
+                let statusText = item.status || "Kutilmoqda";
+                if (statusText.includes("Olindi") || statusText === "Olindi") {
+                    statusClass = "status-ok";
+                    statusText = "Olindi ✅";
+                } else if (statusText.includes("Rad") || statusText === "Rad etildi") {
+                    statusClass = "status-no";
+                    statusText = "Rad etildi ❌";
+                } else {
+                    statusText = "Kutilmoqda 📌";
+                }
+
                 html += `
-                    <div class="history-card">
+                    <div class="history-card" style="border-left-color: ${statusClass === 'status-ok' ? '#4caf50' : statusClass === 'status-no' ? '#ff3b30' : '#ffc107'};">
                         <div class="card-header">
                             <span>📅 ${item.date} ⏰ ${item.time}</span>
-                            <span class="status">${item.status}</span>
+                            <span class="${statusClass}">${statusText}</span>
                         </div>
                         <div class="amount">${formattedAmount} so'm</div>
                         <div class="comment"><b>Izoh:</b> ${item.comment}</div>
@@ -178,7 +202,9 @@
             container.innerHTML = html;
         }
 
+        // Sahifa har safar ochilganda rahbar panelidagi o'zgarishlarni tekshirib yangilaydi
         loadMyHistory();
+        setInterval(loadMyHistory, 2000); 
     </script>
 </body>
 </html>

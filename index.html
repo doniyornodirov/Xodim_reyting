@@ -65,11 +65,25 @@
             font-weight: bold;
             cursor: pointer;
         }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0 12px 0;
+        }
         .history-title {
             font-size: 18px;
             font-weight: bold;
-            margin: 20px 0 12px 0;
             color: #ffffff;
+        }
+        .btn-refresh {
+            background-color: #2a3447;
+            color: #94a3b8;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
         }
         .history-card {
             background-color: #1e2636;
@@ -77,7 +91,7 @@
             border-radius: 12px;
             margin-bottom: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border-left: 4px solid #ffc107;
+            border-left: 4px solid #facc15;
         }
         .card-header-row {
             display: flex;
@@ -129,7 +143,11 @@
             <button class="btn-submit" onclick="sendCardData()">Guruhga yuborish</button>
         </div>
 
-        <div class="history-title">Mening Tarixatim</div>
+        <div class="history-header">
+            <div class="history-title">Mening Tarixatim</div>
+            <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
+        </div>
+
         <div id="historyList">
             <div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo'sh.</div>
         </div>
@@ -139,6 +157,9 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        // Telegram botdan kelgan xabarlarni yoki eventlarni o'qish imkoniyati
+        // Agar xodim botga o'tib tasdiqlanganini ko'rsa va bu yerda "Yangilash" tugmasini bossa, 
+        // localStorage dagi oxirgi statusni avtomatik "Tasdiqlandi" qilish uchun qo'shimcha mantiq qo'shamiz:
         function loadHistory() {
             const container = document.getElementById('historyList');
             let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
@@ -149,12 +170,12 @@
             }
 
             let html = '';
-            history.forEach(item => {
+            history.forEach((item, index) => {
                 let formattedAmount = Number(item.amount).toLocaleString();
                 let formattedFinal = Number(item.final_amount || item.amount * 1.03).toLocaleString();
                 
                 let statusClass = "status-kutilmoqda";
-                let statusText = item.status || "Kutilmoqda";
+                let statusText = item.status || "Kutilmoqda 📌";
                 let borderColor = "#facc15";
 
                 if (statusText.includes("Tasdiqlandi") || statusText.includes("Olindi")) {
@@ -169,7 +190,13 @@
                     <div class="history-card" style="border-left-color: ${borderColor};">
                         <div class="card-header-row">
                             <span>📅 ${item.date} ⏰ ${item.time}</span>
-                            <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
+                            <span class="${statusClass}" style="font-weight: bold;">
+                                <select onchange="updateStatus(${index}, this.value)" style="background: #121824; color: #fff; border: 1px solid #2a3447; border-radius: 4px; padding: 2px;">
+                                    <option value="Kutilmoqda 📌" ${statusText.includes('Kutilmoqda') ? 'selected' : ''}>Kutilmoqda 📌</option>
+                                    <option value="Tasdiqlandi ✅" ${statusText.includes('Tasdiqlandi') ? 'selected' : ''}>Tasdiqlandi ✅</option>
+                                    <option value="Rad etildi ❌" ${statusText.includes('Rad') ? 'selected' : ''}>Rad etildi ❌</option>
+                                </select>
+                            </span>
                         </div>
                         <div class="card-number">💳 ${item.card_number}</div>
                         <div class="card-holder">👤 ${item.card_holder}</div>
@@ -178,6 +205,16 @@
                 `;
             });
             container.innerHTML = html;
+        }
+
+        // Xodim o'zi ham statusni o'zgartira olishi yoki rahbar tasdiqlagach bu yerda belgilashi uchun qo'shimcha imkoniyat
+        function updateStatus(index, newStatus) {
+            let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            if (history[index]) {
+                history[index].status = newStatus;
+                localStorage.setItem('my_card_history', JSON.stringify(history));
+                loadHistory();
+            }
         }
 
         function sendCardData() {
@@ -202,7 +239,7 @@
                 final_amount: parseFloat(amount) * 1.03,
                 date: dateStr,
                 time: timeStr,
-                status: "Kutilmoqda"
+                status: "Kutilmoqda 📌"
             };
 
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];

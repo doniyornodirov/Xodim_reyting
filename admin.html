@@ -73,7 +73,6 @@
             align-items: center;
             justify-content: center;
         }
-        /* Rasmda ko'rsatilgan qizil trash tugmasi dizayni */
         .delete-btn {
             background-color: #2a3447;
             color: #ff3b30;
@@ -201,7 +200,7 @@
             let html = '';
             employees.forEach(emp => {
                 html += `
-                    <div class="employee-card">
+                    <div class="employee-card" id="emp-card-${emp.id}">
                         <div class="info">
                             <div><b>Xodim:</b> ${emp.name}</div>
                             <div><b>ID:</b> ${emp.id}</div>
@@ -235,50 +234,4 @@
         }
 
         function closeModal() {
-            document.getElementById('actionModal').style.display = "none";
-        }
-
-        function saveData() {
-            const type = document.getElementById('actionType').value;
-            const userId = document.getElementById('modalUserId').value;
-            const fullName = document.getElementById('modalFullName').value;
-
-            if (!userId || !fullName) {
-                alert("Barcha maydonlarni to'ldiring!");
-                return;
-            }
-
-            const data = {
-                action: type === "add" ? "add_employee_webapp" : "edit_employee",
-                user_id: userId,
-                full_name: fullName
-            };
-
-            tg.sendData(JSON.stringify(data));
-            tg.close();
-        }
-
-        // Trash bosilganda chiqadigan Yes/No modal funksiyalari
-        function openDeleteModal(id) {
-            document.getElementById('deleteUserId').value = id;
-            document.getElementById('deleteModal').style.display = "flex";
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').style.display = "none";
-        }
-
-        function confirmDelete() {
-            const id = document.getElementById('deleteUserId').value;
-            const data = {
-                action: "delete_employee",
-                user_id: id
-            };
-            tg.sendData(JSON.stringify(data));
-            tg.close();
-        }
-
-        renderList();
-    </script>
-</body>
-</html>
+            document.getElementById('actionModal').style.display

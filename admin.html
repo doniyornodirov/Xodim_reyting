@@ -3,41 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rahbar Paneli - Xodimlar</title>
+    <title>Xodimlar ro'yxati</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #121824;
             color: #ffffff;
-            padding: 20px;
+            padding: 15px;
             margin: 0;
         }
         .container {
             max-width: 500px;
             margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+        .add-btn {
+            background-color: #2a3447;
+            color: #4caf50;
+            border: 1px solid #4caf50;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .employee-card {
+            background-color: #1e2636;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-bottom: 2px solid #2a3447;
+        }
+        .info div {
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        .edit-btn {
+            background-color: #2a3447;
+            color: #ffc107;
+            border: 1px solid #ffc107;
+            font-size: 18px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Modal oyna dizayni */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
             background-color: #1e2636;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
         }
-        h2 {
-            margin-bottom: 15px;
-            font-size: 20px;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            font-size: 14px;
-            color: #b0bec5;
-            margin-bottom: 5px;
-        }
-        input {
+        .modal-content h3 { margin-top: 0; }
+        .modal-content input {
             width: 100%;
             padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 15px;
             background-color: #2a3447;
             border: 1px solid #3f4d66;
             border-radius: 8px;
@@ -45,68 +98,128 @@
             font-size: 16px;
             box-sizing: border-box;
         }
-        button {
-            width: 100%;
-            background-color: #4caf50;
-            color: white;
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
             border: none;
-            padding: 12px;
             border-radius: 8px;
             font-size: 16px;
-            cursor: pointer;
             font-weight: bold;
-            margin-top: 10px;
+            cursor: pointer;
         }
-        button:hover {
-            background-color: #43a047;
-        }
-        .info-box {
-            background-color: #2a3447;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #90a4ae;
-            line-height: 1.4;
-        }
+        .btn-save { background-color: #4caf50; color: white; }
+        .btn-cancel { background-color: #f44336; color: white; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Xodimni Tahrirlash</h2>
-        <div class="info-box">
-            💡 Botdagi <b>/xodimlar</b> buyrug'i orqali barcha xodimlarning ID raqamlari va ismlarini ko'rib olishingiz mumkin.
+        <div class="header">
+            <h2>Xodimlar ro'yxati</h2>
+            <button class="add-btn" onclick="openAddModal()">＋</button>
         </div>
-        <form id="adminForm">
-            <div class="form-group">
-                <label for="userId">Xodimning Telegram ID raqami:</label>
-                <input type="number" id="userId" placeholder="Masalan: 8662254493" required>
+
+        <div id="employeeList">
+            Yuklanmoqda...
+        </div>
+    </div>
+
+    <!-- Modal Oyna (Qo'shish / Tahrirlash) -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Xodim qo'shish</h3>
+            <input type="hidden" id="actionType">
+            <label>Telegram ID:</label>
+            <input type="number" id="modalUserId" placeholder="Masalan: 854321054">
+            <label>Xodim ismi:</label>
+            <input type="text" id="modalFullName" placeholder="Doniyor z">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal()">Bekor qilish</button>
+                <button class="btn-save" onclick="saveData()">Saqlash</button>
             </div>
-            <div class="form-group">
-                <label for="fullName">Yangi Ism va Familiyasi:</label>
-                <input type="text" id="fullName" placeholder="Anvar Toshmatov" required>
-            </div>
-            <button type="submit">Ismini Yangilash</button>
-        </form>
+        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        document.getElementById('adminForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const userId = document.getElementById('userId').value;
-            const fullName = document.getElementById('fullName').value;
+        // Botdan kelgan xodimlar ro'yxatini qabul qilish (agar mavjud bo'lsa)
+        let employees = [];
+
+        function renderList() {
+            const listContainer = document.getElementById('employeeList');
+            if (employees.length === 0) {
+                listContainer.innerHTML = '<div class="employee-card">Hozircha xodimlar yo\'q.</div>';
+                return;
+            }
+
+            let html = '';
+            employees.forEach(emp => {
+                html += `
+                    <div class="employee-card">
+                        <div class="info">
+                            <div><b>Xodim:</b> ${emp.name}</div>
+                            <div><b>ID:</b> ${emp.id}</div>
+                        </div>
+                        <button class="edit-btn" onclick="openEditModal('${emp.id}', '${emp.name}')">✏️</button>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = "Yangi xodim qo'shish";
+            document.getElementById('actionType').value = "add";
+            document.getElementById('modalUserId').value = "";
+            document.getElementById('modalUserId').disabled = false;
+            document.getElementById('modalFullName').value = "";
+            document.getElementById('actionModal').style.display = "flex";
+        }
+
+        function openEditModal(id, name) {
+            document.getElementById('modalTitle').innerText = "Xodimni tahrirlash";
+            document.getElementById('actionType').value = "edit";
+            document.getElementById('modalUserId').value = id;
+            document.getElementById('modalUserId').disabled = true;
+            document.getElementById('modalFullName').value = name;
+            document.getElementById('actionModal').style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById('actionModal').style.display = "none";
+        }
+
+        function saveData() {
+            const type = document.getElementById('actionType').value;
+            const userId = document.getElementById('modalUserId').value;
+            const fullName = document.getElementById('modalFullName').value;
+
+            if (!userId || !fullName) {
+                alert("Barcha maydonlarni to'ldiring!");
+                return;
+            }
 
             const data = {
-                action: "edit_employee",
+                action: type === "add" ? "add_employee_webapp" : "edit_employee",
                 user_id: userId,
                 full_name: fullName
             };
 
             tg.sendData(JSON.stringify(data));
-        });
+            tg.close();
+        }
+
+        // Test uchun ma'lumot (Bot orqali ma'lumot kelmasa ko'rinib turishi uchun)
+        employees = [
+            { id: "854321054", name: "Doniyoz z" },
+            { id: "1079285432", name: "Samandar" }
+        ];
+        renderList();
     </script>
 </body>
 </html>

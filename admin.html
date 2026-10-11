@@ -185,7 +185,8 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let employees = [
+        // LocalStorage yordamida xodimlarni saqlaymiz
+        let employees = JSON.parse(localStorage.getItem('employees')) || [
             { id: "854321054", name: "Doniyoz z" },
             { id: "1079285432", name: "Samandar" }
         ];
@@ -234,4 +235,65 @@
         }
 
         function closeModal() {
-            document.getElementById('actionModal').style.display
+            document.getElementById('actionModal').style.display = "none";
+        }
+
+        function saveData() {
+            const type = document.getElementById('actionType').value;
+            const userId = document.getElementById('modalUserId').value;
+            const fullName = document.getElementById('modalFullName').value;
+
+            if (!userId || !fullName) {
+                alert("Barcha maydonlarni to'ldiring!");
+                return;
+            }
+
+            // Yangi qo'shish yoki tahrirlashni localga yozish
+            let existing = employees.find(e => e.id === userId);
+            if (existing) {
+                existing.name = fullName;
+            } else {
+                employees.push({ id: userId, name: fullName });
+            }
+            localStorage.setItem('employees', JSON.stringify(employees));
+            renderList();
+            closeModal();
+
+            const data = {
+                action: type === "add" ? "add_employee_webapp" : "edit_employee",
+                user_id: userId,
+                full_name: fullName
+            };
+
+            tg.sendData(JSON.stringify(data));
+        }
+
+        function openDeleteModal(id) {
+            document.getElementById('deleteUserId').value = id;
+            document.getElementById('deleteModal').style.display = "flex";
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = "none";
+        }
+
+        function confirmDelete() {
+            const id = document.getElementById('deleteUserId').value;
+            
+            // Ro'yxatdan darhol o'chirish va LocalStorage'ni yangilash
+            employees = employees.filter(emp => emp.id !== id);
+            localStorage.setItem('employees', JSON.stringify(employees));
+            renderList();
+            closeDeleteModal();
+
+            const data = {
+                action: "delete_employee",
+                user_id: id
+            };
+            tg.sendData(JSON.stringify(data));
+        }
+
+        renderList();
+    </script>
+</body>
+</html>

@@ -72,7 +72,6 @@
         .status-wait { color: #ffc107; font-weight: bold; }
         .status-no { color: #ff3b30; font-weight: bold; }
 
-        /* Modal oyna dizayni */
         .modal {
             display: none;
             position: fixed;
@@ -142,7 +141,6 @@
         </div>
     </div>
 
-    <!-- Yangi summa kiritish modali -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <h3>Summa kiritish</h3>
@@ -158,25 +156,10 @@
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        try { tg.expand(); } catch (e) {}
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-        // Tarix ma'lumotlarini brauzer xotirasidan yoki test uchun o'qish
-        let histories = [];
-        try {
-            const saved = localStorage.getItem('my_histories');
-            if (saved) {
-                histories = JSON.parse(saved);
-            } else {
-                histories = [
-                    { date: "11.10.2026", time: "11:15", amount: "1 000 000", comment: "O'zingizga berdim", status: "Olindi ✅" },
-                    { date: "10.10.2026", time: "15:45", amount: "5 000 000", comment: "O'zingizga berdim", status: "Kutilmoqda 📌" }
-                ];
-                localStorage.setItem('my_histories', JSON.stringify(histories));
-            }
-        } catch (e) {
-            histories = [];
-        }
+        let histories = JSON.parse(localStorage.getItem('my_histories')) || [];
 
         function renderHistory() {
             const container = document.getElementById('historyList');
@@ -190,14 +173,19 @@
             let html = '';
             histories.forEach(item => {
                 let statusClass = "status-wait";
-                if (item.status.includes("✅")) statusClass = "status-ok";
-                if (item.status.includes("❌")) statusClass = "status-no";
+                let statusText = item.status;
+                if (statusText.includes("Olindi") || statusText.includes("✅")) statusText = "Olindi ✅";
+                else if (statusText.includes("Rad") || statusText.includes("❌")) statusText = "Rad etildi ❌";
+                else statusText = "Kutilmoqda 📌";
+
+                if (statusText.includes("✅")) statusClass = "status-ok";
+                if (statusText.includes("❌")) statusClass = "status-no";
 
                 html += `
                     <div class="history-card">
                         <div class="history-header">
                             <span>📅 ${item.date} &nbsp; ⏰ ${item.time}</span>
-                            <span class="${statusClass}">${item.status}</span>
+                            <span class="${statusClass}">${statusText}</span>
                         </div>
                         <div class="amount">💰 ${item.amount} so'm</div>
                         <div class="comment"><b>Izoh:</b> ${item.comment}</div>
@@ -226,12 +214,9 @@
                 return;
             }
 
-            // Hozirgi sana va vaqtni olish
             const now = new Date();
             const date = String(now.getDate()).padStart(2, '0') + '.' + String(now.getMonth() + 1).padStart(2, '0') + '.' + now.getFullYear();
             const time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-            
-            // Formatlangan summa
             const formattedAmount = Number(amount).toLocaleString('en-US').replace(/,/g, ' ');
 
             const newItem = {
@@ -242,32 +227,24 @@
                 status: "Kutilmoqda 📌"
             };
 
-            histories.unshift(newItem); // Yangisini boshiga qo'shish
-            try {
-                localStorage.setItem('my_histories', JSON.stringify(histories));
-            } catch (err) {}
-
+            histories.unshift(newItem);
+            localStorage.setItem('my_histories', JSON.stringify(histories));
             renderHistory();
             closeModal();
 
-            // Botga WebApp orqali ma'lumot yuborish
             const data = {
                 type: "given_amount",
                 amount: parseFloat(amount),
                 comment: comment || "Izoh yo'q"
             };
 
-            try {
-                tg.sendData(JSON.stringify(data));
-            } catch (err) {}
-
+            tg.sendData(JSON.stringify(data));
             setTimeout(() => {
-                try { tg.close(); } catch (err) {}
+                tg.close();
             }, 300);
         }
 
-        document.addEventListener('DOMContentLoaded', renderHistory);
-        window.onload = renderHistory;
+        renderHistory();
     </script>
 </body>
 </html>

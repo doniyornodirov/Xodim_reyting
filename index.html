@@ -89,8 +89,8 @@
             <label for="card">16 xonali karta raqami:</label>
             <input type="text" id="card" placeholder="8600 0000 0000 0000" maxlength="19" required>
 
-            <label for="fullname">Ism va Familiya:</label>
-            <input type="text" id="fullname" placeholder="Ism va Familiya" required>
+            <label for="cardHolder">Karta egasi:</label>
+            <input type="text" id="cardHolder" placeholder="Ism Familiya" required>
 
             <label for="amount">Summa (so'm):</label>
             <input type="text" id="amount" placeholder="1 000 000" required>
@@ -105,7 +105,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Karta raqamini formatlash (har 4 ta raqamdan keyin bo'sh joy)
+        // Karta raqamini formatlash
         const cardInput = document.getElementById('card');
         cardInput.addEventListener('input', function (e) {
             let value = e.target.value.replace(/\D/g, '').substring(0, 16);
@@ -113,9 +113,9 @@
             e.target.value = formattedValue;
         });
 
-        // Ism va Familiya (faqat harflar va bo'sh joy)
-        const fullnameInput = document.getElementById('fullname');
-        fullnameInput.addEventListener('input', function (e) {
+        // Karta egasi (faqat harflar)
+        const holderInput = document.getElementById('cardHolder');
+        holderInput.addEventListener('input', function (e) {
             e.target.value = e.target.value.replace(/[^a-zA-Zа-яА-ЯғҒқҚҳҲўЎ \`\'\-\.]/g, '');
         });
 
@@ -132,13 +132,11 @@
             let num = parseInt(cleanVal, 10);
             e.target.value = num.toLocaleString('en-US').replace(/,/g, ' ');
 
-            // O'qilishi va 3% hisobi
             document.getElementById('amountWords').innerText = "O'qilishi: " + numberToUzbekWords(num) + " so'm";
             let percentVal = num * 1.03;
             document.getElementById('amountWithPercent').innerText = "3% bilan: " + percentVal.toLocaleString('en-US', {maximumFractionDigits: 2}).replace(/,/g, ' ') + " so'm";
         });
 
-        // Sonni o'zbek tilida so'z bilan o'qish funksiyasi
         function numberToUzbekWords(num) {
             if (num === 0) return "nol";
             const birliklar = ["", "bir", "ikki", "uch", "to'rt", "besh", "olti", "yetti", "sakkiz", "to'qqiz"];
@@ -175,16 +173,15 @@
             return qismlar.join(" ");
         }
 
-        // Form yuborilganda
         document.getElementById('reportForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const card = document.getElementById('card').value;
-            const fullname = document.getElementById('fullname').value;
+            const cardHolder = document.getElementById('cardHolder').value;
             const amount = document.getElementById('amount').value.replace(/\s/g, '');
 
             const data = {
                 card: card,
-                fullname: fullname,
+                card_holder: cardHolder,
                 amount: amount
             };
 

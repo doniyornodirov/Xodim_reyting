@@ -22,7 +22,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
         h2 {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-size: 20px;
             text-align: center;
         }
@@ -60,21 +60,33 @@
         button:hover {
             background-color: #43a047;
         }
+        .info-box {
+            background-color: #2a3447;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #90a4ae;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Xodim Ismini Tahrirlash</h2>
+        <h2>Xodimni Tahrirlash</h2>
+        <div class="info-box">
+            💡 Botdagi <b>/xodimlar</b> buyrug'i orqali barcha xodimlarning ID raqamlari va ismlarini ko'rib olishingiz mumkin.
+        </div>
         <form id="adminForm">
             <div class="form-group">
                 <label for="userId">Xodimning Telegram ID raqami:</label>
                 <input type="number" id="userId" placeholder="Masalan: 8662254493" required>
             </div>
             <div class="form-group">
-                <label for="fullName">Xodimning Ism va Familiyasi:</label>
+                <label for="fullName">Yangi Ism va Familiyasi:</label>
                 <input type="text" id="fullName" placeholder="Anvar Toshmatov" required>
             </div>
-            <button type="submit">Saqlash va Yangilash</button>
+            <button type="submit">Ismini Yangilash</button>
         </form>
     </div>
 

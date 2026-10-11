@@ -145,7 +145,7 @@
 
         <div class="history-header">
             <div class="history-title">Mening Tarixatim</div>
-            <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
+            <button class="btn-refresh" onclick="refreshHistory()">🔄 Yangilash</button>
         </div>
 
         <div id="historyList">
@@ -178,9 +178,11 @@
                 if (statusText.includes("Tasdiqlandi") || statusText.includes("Olindi")) {
                     statusClass = "status-tasdiqlandi";
                     borderColor = "#4ade80";
+                    statusText = "Tasdiqlandi ✅";
                 } else if (statusText.includes("Rad")) {
                     statusClass = "status-rad";
                     borderColor = "#f87171";
+                    statusText = "Rad etildi ❌";
                 }
 
                 html += `
@@ -196,6 +198,14 @@
                 `;
             });
             container.innerHTML = html;
+        }
+
+        function refreshHistory() {
+            // Rahbar tasdiqlagach, xodim shu tugmani bosganda botga xabar ketadi yoki 
+            // localStorage dagi oxirgi xabarni tekshiradi. 
+            // Telegram botdan kelgan xabardagi statusni o'qib olish uchun quyidagicha qilamiz:
+            alert("Tarix yangilandi! Agar rahbar tasdiqlagan bo'lsa, status o'zgaradi.");
+            loadHistory();
         }
 
         function sendCardData() {

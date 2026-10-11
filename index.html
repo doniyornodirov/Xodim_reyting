@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karta To'ldirish</title>
+    <title>Karta To'ldirish va Tarix</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -30,7 +30,7 @@
             color: #ffc107;
             margin-bottom: 20px;
         }
-        .form-group {
+        .form-group, .history-section {
             background-color: #1e2636;
             padding: 15px;
             border-radius: 12px;
@@ -65,6 +65,18 @@
             font-weight: bold;
             cursor: pointer;
         }
+        .history-card {
+            background-color: #121824;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffc107;
+            font-size: 14px;
+        }
+        .card-num { font-weight: bold; font-size: 16px; color: #fff; margin-bottom: 4px; }
+        .card-holder { color: #cbd5e1; margin-bottom: 6px; }
+        .card-amounts { color: #4caf50; margin-bottom: 6px; }
+        .card-footer { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; border-top: 1px solid #2a3447; padding-top: 6px; }
     </style>
 </head>
 <body>
@@ -86,11 +98,46 @@
 
             <button class="btn-submit" onclick="sendCardData()">Guruhga yuborish</button>
         </div>
+
+        <div class="history-section">
+            <h3 style="margin-top: 0; font-size: 16px; color: #fff;">Mening to'lovlar tarixim</h3>
+            <div id="historyList">Tarix topilmadi.</div>
+        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+
+        function loadHistory() {
+            const container = document.getElementById('historyList');
+            let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
+
+            if (history.length === 0) {
+                container.innerHTML = '<div style="color: #94a3b8; text-align: center; font-size: 13px;">Hozircha tarix mavjud emas.</div>';
+                return;
+            }
+
+            let html = '';
+            history.forEach(item => {
+                let formattedAmount = Number(item.amount).toLocaleString();
+                let formattedFinal = Number(item.final_amount || item.amount * 1.03).toLocaleString();
+                
+                html += `
+                    <div class="history-card">
+                        <div class="card-num">${item.card_number}</div>
+                        <div class="card-holder">${item.card_holder}</div>
+                        <div class="card-amounts">Asl: ${formattedAmount} so'm | <b>+3%: ${formattedFinal} so'm</b></div>
+                        <div style="font-weight: bold; color: #ffc107; margin-bottom: 6px;">Status: Kutilmoqda 📌</div>
+                        <div class="card-footer">
+                            <span>📅 ${item.date}</span>
+                            <span>⏰ ${item.time}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
 
         function sendCardData() {
             let cardNumber = document.getElementById('cardNumber').value.trim();
@@ -106,30 +153,34 @@
             let dateStr = now.toLocaleDateString();
             let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-            // Bot qabul qilishi uchun type aniq "card_transaction" qilib berildi
             let cardData = {
                 type: "card_transaction",
                 card_number: cardNumber,
                 card_holder: cardHolder,
                 amount: parseFloat(amount),
+                final_amount: parseFloat(amount) * 1.03,
                 date: dateStr,
                 time: timeStr,
                 status: "Kutilmoqda"
             };
 
-            // Shaxsiy tarix uchun localStorage ga saqlash
+            // Brauzer xotirasiga saqlash
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
             myHistory.unshift(cardData);
             localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
-            // Telegram botga yuborish
+            // Botga yuborish
             tg.sendData(JSON.stringify(cardData));
             
             alert("Karta ma'lumotlari muvaffaqiyatli yuborildi!");
             document.getElementById('cardNumber').value = '';
             document.getElementById('cardHolder').value = '';
             document.getElementById('amount').value = '';
+
+            loadHistory(); // Tarixni yangilab chiqarish
         }
+
+        loadHistory();
     </script>
 </body>
 </html>

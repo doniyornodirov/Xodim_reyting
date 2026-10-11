@@ -86,7 +86,6 @@
             align-items: center;
             justify-content: center;
         }
-        /* Modal oyna dizayni */
         .modal {
             display: none;
             position: fixed;
@@ -153,7 +152,6 @@
         </div>
     </div>
 
-    <!-- Qo'shish / Tahrirlash Modali -->
     <div id="actionModal" class="modal">
         <div class="modal-content" style="text-align: left;">
             <h3 id="modalTitle">Xodim qo'shish</h3>
@@ -169,7 +167,6 @@
         </div>
     </div>
 
-    <!-- O'chirishni Tasdiqlash Modali (Yes / No) -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <h3>Haqiqatda xodimni bo'shatmoqchimisiz?</h3>
@@ -185,13 +182,29 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let employees = JSON.parse(localStorage.getItem('employees')) || [
-            { id: "854321054", name: "Doniyoz z" },
-            { id: "1079285432", name: "Samandar" }
-        ];
+        let employees = [];
+        try {
+            const saved = localStorage.getItem('employees');
+            if (saved) {
+                employees = JSON.parse(saved);
+            } else {
+                employees = [
+                    { id: "854321054", name: "Doniyoz z" },
+                    { id: "1079285432", name: "Samandar" }
+                ];
+                localStorage.setItem('employees', JSON.stringify(employees));
+            }
+        } catch (e) {
+            employees = [
+                { id: "854321054", name: "Doniyoz z" },
+                { id: "1079285432", name: "Samandar" }
+            ];
+        }
 
         function renderList() {
             const listContainer = document.getElementById('employeeList');
+            if (!listContainer) return;
+            
             if (employees.length === 0) {
                 listContainer.innerHTML = '<div class="employee-card">Hozircha xodimlar yo\'q.</div>';
                 return;
@@ -253,7 +266,10 @@
             } else {
                 employees.push({ id: userId, name: fullName });
             }
-            localStorage.setItem('employees', JSON.stringify(employees));
+            try {
+                localStorage.setItem('employees', JSON.stringify(employees));
+            } catch (err) {}
+            
             renderList();
             closeModal();
 
@@ -281,9 +297,11 @@
         function confirmDelete() {
             const id = document.getElementById('deleteUserId').value;
             
-            // Sahifadan va xotiradan darhol o'chirish
             employees = employees.filter(emp => emp.id !== id);
-            localStorage.setItem('employees', JSON.stringify(employees));
+            try {
+                localStorage.setItem('employees', JSON.stringify(employees));
+            } catch (err) {}
+            
             renderList();
             closeDeleteModal();
 
@@ -291,4 +309,14 @@
                 action: "delete_employee",
                 user_id: id
             };
-            tg.sendData(JSON
+            tg.sendData(JSON.stringify(data));
+            
+            setTimeout(() => {
+                tg.close();
+            }, 300);
+        }
+
+        renderList();
+    </script>
+</body>
+</html>

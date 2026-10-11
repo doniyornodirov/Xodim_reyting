@@ -1,394 +1,284 @@
-import asyncio
-import json
-import sqlite3
-from aiogram import Bot, Dispatcher, F, Router
-from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    Message,
-    ReplyKeyboardMarkup,
-    WebAppInfo,
-)
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xodimlar ro'yxati</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121824;
+            color: #ffffff;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+        .add-btn {
+            background-color: #1e2636;
+            color: #4caf50;
+            border: 2px solid #4caf50;
+            font-size: 20px;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .employee-card {
+            background-color: #1e2636;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .info div {
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .edit-btn {
+            background-color: #2a3447;
+            color: #ffc107;
+            border: 1px solid #ffc107;
+            font-size: 16px;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Rasmda ko'rsatilgan qizil trash tugmasi dizayni */
+        .delete-btn {
+            background-color: #2a3447;
+            color: #ff3b30;
+            border: 1px solid #ff3b30;
+            font-size: 16px;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Modal oyna dizayni */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #1e2636;
+            padding: 22px;
+            border-radius: 14px;
+            width: 85%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            background-color: #2a3447;
+            border: 1px solid #3f4d66;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-yes { background-color: #ff3b30; color: white; }
+        .btn-no { background-color: #2a3447; color: #b0bec5; border: 1px solid #3f4d66; }
+        .btn-save { background-color: #4caf50; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Xodimlar ro'yxati</h2>
+            <button class="add-btn" onclick="openAddModal()">＋</button>
+        </div>
 
-TOKEN = "8772920592:AAGOhO9FJTXP4JU2YyufyaJOiY2IvANWttQ" 
-GROUP_ID = -1003747381544       
-ADMIN_ID = 8686341550            
-WEB_APP_URL = "https://doniyornodirov.github.io/Xodim_reyting/" 
-GIVEN_WEB_APP_URL = "https://doniyornodirov.github.io/Xodim_reyting/berilgan.html" 
-ADMIN_WEB_APP_URL = "https://doniyornodirov.github.io/Xodim_reyting/admin.html" 
-HISTORY_WEB_APP_URL = "https://doniyornodirov.github.io/Xodim_reyting/tarix.html"
-MY_HISTORY_WEB_APP_URL = "https://doniyornodirov.github.io/Xodim_reyting/my_tarix.html"
+        <div id="employeeList">
+            Yuklanmoqda...
+        </div>
+    </div>
 
-bot = Bot(token=TOKEN)
-router = Router()
+    <!-- Qo'shish / Tahrirlash Modali -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content" style="text-align: left;">
+            <h3 id="modalTitle">Xodim qo'shish</h3>
+            <input type="hidden" id="actionType">
+            <label style="font-size: 14px; color: #b0bec5;">Telegram ID:</label>
+            <input type="number" id="modalUserId" placeholder="Masalan: 854321054">
+            <label style="font-size: 14px; color: #b0bec5;">Xodim ismi:</label>
+            <input type="text" id="modalFullName" placeholder="Doniyoz z">
+            <div class="modal-buttons">
+                <button class="btn-no" onclick="closeModal()">Bekor qilish</button>
+                <button class="btn-save" onclick="saveData()">Saqlash</button>
+            </div>
+        </div>
+    </div>
 
-def init_db():
-    conn = sqlite3.connect("reports.db")
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            employee_name TEXT,
-            card_holder TEXT,
-            card_number TEXT,
-            amount REAL,
-            final_amount REAL,
-            status TEXT,
-            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS given_amounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            employee_name TEXT,
-            amount REAL,
-            comment TEXT,
-            status TEXT,
-            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS allowed_employees (
-            user_id INTEGER PRIMARY KEY,
-            full_name TEXT
-        )
-    """)
-    
-    conn.commit()
-    conn.close()
+    <!-- O'chirishni Tasdiqlash Modali (Yes / No) -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h3>Haqiqatda xodimni bo'shatmoqchimisiz?</h3>
+            <input type="hidden" id="deleteUserId">
+            <div class="modal-buttons">
+                <button class="btn-no" onclick="closeDeleteModal()">No</button>
+                <button class="btn-yes" onclick="confirmDelete()">Yes</button>
+            </div>
+        </div>
+    </div>
 
-init_db()
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-@router.message(Command("start"))
-async def cmd_start(message: Message, state: FSMContext):
-    await state.clear()
-    user_id = message.from_user.id
-    profile_name = message.from_user.full_name or "Xodim"
-    
-    if user_id == ADMIN_ID:
-        keyboard = ReplyKeyboardMarkup(
-            keyboard=[
-                [KeyboardButton(text="👥 Xodimlar ro'yxati va boshqarish", web_app=WebAppInfo(url=ADMIN_WEB_APP_URL))],
-                [KeyboardButton(text="📋 Olingan summalar tarixi", web_app=WebAppInfo(url=HISTORY_WEB_APP_URL))]
-            ],
-            resize_keyboard=True
-        )
-        await message.answer(
-            "Assalomu alaykum Rahbar!\n\n"
-            "Panelni ochish uchun pastdagi tugmani bosing:",
-            reply_markup=keyboard
-        )
-        return
+        let employees = [
+            { id: "854321054", name: "Doniyoz z" },
+            { id: "1079285432", name: "Samandar" }
+        ];
 
-    conn = sqlite3.connect("reports.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT full_name FROM allowed_employees WHERE user_id = ?", (user_id,))
-    employee = cursor.fetchone()
+        function renderList() {
+            const listContainer = document.getElementById('employeeList');
+            if (employees.length === 0) {
+                listContainer.innerHTML = '<div class="employee-card">Hozircha xodimlar yo\'q.</div>';
+                return;
+            }
 
-    if employee:
-        current_name = employee[0]
-        if not current_name or current_name == "Xodim" or current_name == "Kiritilmagan":
-            cursor.execute("UPDATE allowed_employees SET full_name = ? WHERE user_id = ?", (profile_name, user_id))
-            conn.commit()
-            current_name = profile_name
-    conn.close()
+            let html = '';
+            employees.forEach(emp => {
+                html += `
+                    <div class="employee-card">
+                        <div class="info">
+                            <div><b>Xodim:</b> ${emp.name}</div>
+                            <div><b>ID:</b> ${emp.id}</div>
+                        </div>
+                        <div class="actions">
+                            <button class="delete-btn" onclick="openDeleteModal('${emp.id}')" title="Bo'shatish">🗑️</button>
+                            <button class="edit-btn" onclick="openEditModal('${emp.id}', '${emp.name}')" title="Tahrirlash">✏️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
 
-    if employee:
-        keyboard = ReplyKeyboardMarkup(
-            keyboard=[
-                [KeyboardButton(text="📋 Karta to'ldirish formasini ochish", web_app=WebAppInfo(url=WEB_APP_URL))],
-                [KeyboardButton(text="💵 Berilgan summa kiritish", web_app=WebAppInfo(url=GIVEN_WEB_APP_URL))],
-                [KeyboardButton(text="📜 Berilgan summalar tarixi", web_app=WebAppInfo(url=MY_HISTORY_WEB_APP_URL))]
-            ],
-            resize_keyboard=True
-        )
-        await message.answer(f"Assalomu alaykum, {current_name}! Kerakli bo'limni tanlang:", reply_markup=keyboard)
-    else:
-        await message.answer(
-            f"Assalomu alaykum! Siz tizimda ro'yxatdan o'tmagansiz.\n\n"
-            f"Sizning Telegram ID raqamingiz: <code>{user_id}</code>\n\n"
-            "Iltimos, ushbu ID raqamingizni rahbarga yuboring.",
-            parse_mode="HTML"
-        )
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = "Yangi xodim qo'shish";
+            document.getElementById('actionType').value = "add";
+            document.getElementById('modalUserId').value = "";
+            document.getElementById('modalUserId').disabled = false;
+            document.getElementById('modalFullName').value = "";
+            document.getElementById('actionModal').style.display = "flex";
+        }
 
-@router.message(F.web_app_data)
-async def web_app_data_handler(message: Message):
-    try:
-        data = json.loads(message.web_app_data.data)
-        
-        # Xodimni o'chirish (bloklash)
-        if data.get("action") == "delete_employee":
-            if message.from_user.id != ADMIN_ID:
-                return
-            emp_id = int(data["user_id"])
-            
-            conn = sqlite3.connect("reports.db")
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM allowed_employees WHERE user_id = ?", (emp_id,))
-            conn.commit()
-            conn.close()
-            
-            await message.answer(f"❌ Xodim tizimdan o'chirildi va bloklandi (ID: {emp_id})", parse_mode="HTML")
-            
-            try:
-                await bot.send_message(chat_id=emp_id, text="Siz rahbar tomonidan tizimdan o'chirildingiz va botdan foydalanish huquqingiz to'xtatildi.", reply_markup=None)
-            except Exception:
-                pass
-            return
+        function openEditModal(id, name) {
+            document.getElementById('modalTitle').innerText = "Xodimni tahrirlash";
+            document.getElementById('actionType').value = "edit";
+            document.getElementById('modalUserId').value = id;
+            document.getElementById('modalUserId').disabled = true;
+            document.getElementById('modalFullName').value = name;
+            document.getElementById('actionModal').style.display = "flex";
+        }
 
-        # Xodim qo'shish yoki tahrirlash
-        if data.get("action") in ["edit_employee", "add_employee_webapp"]:
-            if message.from_user.id != ADMIN_ID:
-                return
-            emp_id = int(data["user_id"])
-            new_name = data["full_name"]
-            
-            conn = sqlite3.connect("reports.db")
-            cursor = conn.cursor()
-            cursor.execute("INSERT OR REPLACE INTO allowed_employees (user_id, full_name) VALUES (?, ?)", (emp_id, new_name))
-            conn.commit()
-            conn.close()
-            
-            await message.answer(f"✅ Xodim saqlandi: <b>{new_name}</b> (ID: {emp_id})", parse_mode="HTML")
-            
-            try:
-                keyboard = ReplyKeyboardMarkup(
-                    keyboard=[
-                        [KeyboardButton(text="📋 Karta to'ldirish formasini ochish", web_app=WebAppInfo(url=WEB_APP_URL))],
-                        [KeyboardButton(text="💵 Berilgan summa kiritish", web_app=WebAppInfo(url=GIVEN_WEB_APP_URL))],
-                        [KeyboardButton(text="📜 Berilgan summalar tarixi", web_app=WebAppInfo(url=MY_HISTORY_WEB_APP_URL))]
-                    ],
-                    resize_keyboard=True
-                )
-                await bot.send_message(chat_id=emp_id, text="Tabriklaymiz! Rahbar sizni tizimga qo'shdi yoki ma'lumotlaringizni yangiladi.", reply_markup=keyboard)
-            except Exception:
-                pass
-            return
+        function closeModal() {
+            document.getElementById('actionModal').style.display = "none";
+        }
 
-        user_id = message.from_user.id
-        
-        conn = sqlite3.connect("reports.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT full_name FROM allowed_employees WHERE user_id = ?", (user_id,))
-        emp_row = cursor.fetchone()
-        employee_name = emp_row[0] if emp_row and emp_row[0] and emp_row[0] != "Xodim" else message.from_user.full_name
+        function saveData() {
+            const type = document.getElementById('actionType').value;
+            const userId = document.getElementById('modalUserId').value;
+            const fullName = document.getElementById('modalFullName').value;
 
-        # Berilgan summa formasi
-        if data.get("type") == "given_amount":
-            amount = float(data.get("amount", 0))
-            comment = data.get("comment", "Izoh yo'q")
+            if (!userId || !fullName) {
+                alert("Barcha maydonlarni to'ldiring!");
+                return;
+            }
 
-            cursor.execute(
-                "INSERT INTO given_amounts (user_id, employee_name, amount, comment, status) VALUES (?, ?, ?, ?, ?)",
-                (user_id, employee_name, amount, comment, "Kutilmoqda")
-            )
-            tx_id = cursor.lastrowid
-            conn.commit()
-            conn.close()
+            const data = {
+                action: type === "add" ? "add_employee_webapp" : "edit_employee",
+                user_id: userId,
+                full_name: fullName
+            };
 
-            inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [
-                    InlineKeyboardButton(text="✅ Olindi", callback_data=f"giveapp_{tx_id}"),
-                    InlineKeyboardButton(text="❌ Rad etish", callback_data=f"giverej_{tx_id}")
-                ]
-            ])
+            tg.sendData(JSON.stringify(data));
+            tg.close();
+        }
 
-            text = (
-                f"<b>💵 Berilgan summa so'rovi #{tx_id}</b>\n\n"
-                f"👤 {employee_name}\n"
-                f"💰 {amount:,.2f} so'm\n"
-                f"💬 Izoh: {comment}\n"
-                f"📌 <b>Kutilmoqda</b>"
-            )
+        // Trash bosilganda chiqadigan Yes/No modal funksiyalari
+        function openDeleteModal(id) {
+            document.getElementById('deleteUserId').value = id;
+            document.getElementById('deleteModal').style.display = "flex";
+        }
 
-            await bot.send_message(chat_id=ADMIN_ID, text=text, reply_markup=inline_keyboard, parse_mode="HTML")
-            await message.answer("Berilgan summa ma'lumotlari rahbarga yuborildi.")
-            return
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = "none";
+        }
 
-        # Karta to'ldirish formasi
-        card_number = data.get("card")
-        card_holder = data.get("card_holder")
-        amount = float(data.get("amount", 0))
+        function confirmDelete() {
+            const id = document.getElementById('deleteUserId').value;
+            const data = {
+                action: "delete_employee",
+                user_id: id
+            };
+            tg.sendData(JSON.stringify(data));
+            tg.close();
+        }
 
-        cursor.execute(
-            "INSERT INTO transactions (user_id, employee_name, card_holder, card_number, amount, final_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (user_id, employee_name, card_holder, card_number, amount, 0, "Kutilmoqda")
-        )
-        tx_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
-
-        inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="✅ Tasdiqlash", callback_data=f"approve_{tx_id}"),
-                InlineKeyboardButton(text="❌ Rad etish", callback_data=f"reject_{tx_id}")
-            ]
-        ])
-
-        text = (
-            f"<b>Yangi karta to'ldirish so'rovi #{tx_id}</b>\n\n"
-            f"👤 {employee_name}\n"
-            f"💳 <code>{card_number}</code>\n"
-            f"👤 {card_holder}\n"
-            f"💰 {amount:,.2f} so'm\n"
-            f"📌 <b>Kutilmoqda</b>"
-        )
-
-        await bot.send_message(chat_id=GROUP_ID, text=text, reply_markup=inline_keyboard, parse_mode="HTML")
-        await message.answer("Ma'lumotlar muvaffaqiyatli yuborildi. Rahbar tasdiqlashini kuting.")
-        
-    except Exception as e:
-        print(f"Xatolik: {e}")
-        await message.answer("Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.")
-
-@router.callback_query(F.data.startswith("approve_") | F.data.startswith("reject_"))
-async def process_callback(callback: CallbackQuery):
-    user_id = callback.from_user.id
-
-    if user_id != ADMIN_ID:
-        try:
-            chat_member = await bot.get_chat_member(chat_id=GROUP_ID, user_id=user_id)
-            if chat_member.status not in ["creator", "administrator"]:
-                await callback.answer("⚠️ Bu amalni faqat guruh adminlari bajarishi mumkin!", show_alert=True)
-                return
-        except Exception:
-            await callback.answer("⚠️ Sizning adminlik huquqingizni tekshirib bo'lmadi!", show_alert=True)
-            return
-
-    action, tx_id = callback.data.split("_")
-    tx_id = int(tx_id)
-
-    conn = sqlite3.connect("reports.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT employee_name, card_holder, card_number, amount, status FROM transactions WHERE id = ?", (tx_id,))
-    row = cursor.fetchone()
-
-    if not row:
-        await callback.answer("Ma'lumot topilmadi!", show_alert=True)
-        conn.close()
-        return
-
-    employee_name, card_holder, card_number, amount, current_status = row
-
-    if current_status != "Kutilmoqda":
-        await callback.answer("Bu so'rov allaqachon ko'rib chiqilgan!", show_alert=True)
-        conn.close()
-        return
-
-    if action == "approve":
-        final_amount = amount * 1.03
-        cursor.execute("UPDATE transactions SET final_amount = ?, status = 'Tasdiqlandi' WHERE id = ?", (final_amount, tx_id))
-        conn.commit()
-        updated_text = (
-            f"<b>Karta to'ldirish #{tx_id}</b>\n"
-            f"👤 {employee_name}\n"
-            f"💳 <code>{card_number}</code>\n"
-            f"👤 {card_holder}\n"
-            f"💰 {amount:,.2f} so'm\n"
-            f"➕ 3% bilan: <b>{final_amount:,.2f}</b> so'm\n"
-            f"📌 <b>Tasdiqlandi ✅</b>"
-        )
-    else:
-        cursor.execute("UPDATE transactions SET status = 'Rad etildi' WHERE id = ?", (tx_id,))
-        conn.commit()
-        updated_text = (
-            f"<b>Karta to'ldirish #{tx_id}</b>\n"
-            f"👤 {employee_name}\n"
-            f"💳 <code>{card_number}</code>\n"
-            f"👤 {card_holder}\n"
-            f"💰 {amount:,.2f} so'm\n"
-            f"📌 <b>Rad etildi ❌</b>"
-        )
-
-    conn.close()
-    await callback.message.edit_text(updated_text, reply_markup=None, parse_mode="HTML")
-    await callback.answer("Amal bajarildi!")
-
-@router.callback_query(F.data.startswith("giveapp_") | F.data.startswith("giverej_"))
-async def process_given_callback(callback: CallbackQuery):
-    user_id = callback.from_user.id
-
-    if user_id != ADMIN_ID:
-        await callback.answer("Faqat rahbar tasdiqlashi mumkin!", show_alert=True)
-        return
-
-    action, tx_id = callback.data.split("_")
-    tx_id = int(tx_id)
-
-    conn = sqlite3.connect("reports.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT user_id, employee_name, amount, comment, status FROM given_amounts WHERE id = ?", (tx_id,))
-    row = cursor.fetchone()
-
-    if not row:
-        await callback.answer("Ma'lumot topilmadi!", show_alert=True)
-        conn.close()
-        return
-
-    emp_user_id, employee_name, amount, comment, current_status = row
-
-    if current_status != "Kutilmoqda":
-        await callback.answer("Bu so'rov allaqachon ko'rib chiqilgan!", show_alert=True)
-        conn.close()
-        return
-
-    if action == "giveapp":
-        cursor.execute("UPDATE given_amounts SET status = 'Olindi' WHERE id = ?", (tx_id,))
-        conn.commit()
-        updated_text = (
-            f"<b>💵 Berilgan summa #{tx_id}</b>\n"
-            f"👤 {employee_name}\n"
-            f"💰 {amount:,.2f} so'm\n"
-            f"💬 Izoh: {comment}\n"
-            f"📌 <b>Olindi ✅</b>"
-        )
-        try:
-            await bot.send_message(
-                chat_id=emp_user_id,
-                text=f"Siz yuborgan berilgan summa (#<b>{tx_id}</b> - {amount:,.2f} so'm) rahbar tomonidan <b>Olindi ✅</b> deb tasdiqlandi!",
-                parse_mode="HTML"
-            )
-        except Exception:
-            pass
-    else:
-        cursor.execute("UPDATE given_amounts SET status = 'Rad etildi' WHERE id = ?", (tx_id,))
-        conn.commit()
-        updated_text = (
-            f"<b>💵 Berilgan summa #{tx_id}</b>\n"
-            f"👤 {employee_name}\n"
-            f"💰 {amount:,.2f} so'm\n"
-            f"💬 Izoh: {comment}\n"
-            f"📌 <b>Rad etildi ❌</b>"
-        )
-        try:
-            await bot.send_message(
-                chat_id=emp_user_id,
-                text=f"Siz yuborgan berilgan summa (#<b>{tx_id}</b> - {amount:,.2f} so'm) rahbar tomonidan <b>Rad etildi ❌</b>.",
-                parse_mode="HTML"
-            )
-        except Exception:
-            pass
-
-    conn.close()
-    await callback.message.edit_text(updated_text, reply_markup=None, parse_mode="HTML")
-    await callback.answer("Amal bajarildi!")
-
-async def main():
-    dp = Dispatcher()
-    dp.include_router(router)
-    print("Bot muvaffaqiyatli ishga tushdi...")
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+        renderList();
+    </script>
+</body>
+</html>

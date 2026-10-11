@@ -3,56 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Berilgan summa tarixi</title>
+    <title>Berilgan Summalar Tarixi</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #121824; color: #ffffff; padding: 15px; margin: 0; }
-        .container { max-width: 500px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        h2 { font-size: 20px; margin: 0; }
-        .add-btn { background-color: #1e2636; color: #4caf50; border: 2px solid #4caf50; font-size: 20px; width: 42px; height: 42px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .history-card { background-color: #1e2636; padding: 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border-left: 4px solid #4caf50; }
-        .history-header { display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; margin-bottom: 8px; border-bottom: 1px solid #2a3447; padding-bottom: 5px; }
-        .amount { font-size: 18px; font-weight: bold; color: #ffffff; margin-bottom: 6px; }
-        .comment { font-size: 14px; color: #cbd5e1; }
-        .status-ok { color: #4caf50; font-weight: bold; }
-        .status-wait { color: #ffc107; font-weight: bold; }
-        .status-no { color: #ff3b30; font-weight: bold; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background-color: #1e2636; padding: 22px; border-radius: 14px; width: 85%; max-width: 350px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
-        .modal-content h3 { margin-top: 0; font-size: 18px; margin-bottom: 15px; color: #ffffff; text-align: center; }
-        .modal-content label { font-size: 14px; color: #b0bec5; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; background-color: #2a3447; border: 1px solid #3f4d66; border-radius: 8px; color: #ffffff; font-size: 16px; box-sizing: border-box; }
-        .modal-buttons { display: flex; gap: 12px; }
-        .modal-buttons button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .btn-save { background-color: #4caf50; color: white; }
-        .btn-cancel { background-color: #2a3447; color: #b0bec5; border: 1px solid #3f4d66; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121824;
+            color: #ffffff;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            background-color: #1e2636;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            background-color: #121824;
+            border: 1px solid #2a3447;
+            border-radius: 8px;
+            color: #ffffff;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .history-card {
+            background-color: #1e2636;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border-left: 4px solid #4caf50;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+        .amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+        .comment {
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+        .status {
+            font-weight: bold;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h2>Berilgan summa</h2>
-            <button class="add-btn" onclick="openModal()">＋</button>
+        <h2>Berilgan Summani Kiritish</h2>
+        <div class="form-group">
+            <input type="text" id="employeeName" placeholder="Xodimning ismi" value="">
+            <input type="number" id="amount" placeholder="Summani kiriting (so'm)">
+            <textarea id="comment" placeholder="Izoh yozing..." rows="2"></textarea>
+            <button class="btn-submit" onclick="submitAmount()">Yuborish</button>
         </div>
 
-        <div id="historyList">
+        <h2>Mening Tarixatim</h2>
+        <div id="myHistoryList">
             Yuklanmoqda...
-        </div>
-    </div>
-
-    <div id="addModal" class="modal">
-        <div class="modal-content">
-            <h3>Summa kiritish</h3>
-            <label>Summa (so'm):</label>
-            <input type="number" id="amountInput" placeholder="Masalan: 1000000">
-            <label>Izoh:</label>
-            <textarea id="commentInput" rows="3" placeholder="Masalan: O'zingizga berdim"></textarea>
-            <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal()">Bekor qilish</button>
-                <button class="btn-save" onclick="saveGivenAmount()">Yuborish</button>
-            </div>
         </div>
     </div>
 
@@ -60,37 +102,75 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let histories = JSON.parse(localStorage.getItem('my_histories')) || [];
+        // Telegram foydalanuvchi nomini avtomatik qo'yish
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('employeeName').value = tg.initDataUnsafe.user.first_name || "Xodim";
+        } else {
+            document.getElementById('employeeName').value = "Doni";
+        }
 
-        function renderHistory() {
-            const container = document.getElementById('historyList');
-            if (!container) return;
+        function submitAmount() {
+            let employeeName = document.getElementById('employeeName').value.trim();
+            let enteredAmount = document.getElementById('amount').value.trim();
+            let enteredComment = document.getElementById('comment').value.trim() || "Izoh yo'q";
 
-            if (histories.length === 0) {
-                container.innerHTML = '<div class="history-card"><div class="comment">Hozircha berilgan summalar tarixi yo\'q.</div></div>';
+            if (!enteredAmount || isNaN(enteredAmount)) {
+                alert("Iltimos, to'g'ri summa kiriting!");
+                return;
+            }
+
+            let newEntry = {
+                id: Date.now(),
+                employee: employeeName,
+                amount: enteredAmount,
+                comment: enteredComment,
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                status: "Kutilmoqda"
+            };
+
+            // Rahbar paneli uchun umumiy xotiraga saqlash
+            let adminHistory = JSON.parse(localStorage.getItem('admin_given_history')) || [];
+            adminHistory.unshift(newEntry);
+            localStorage.setItem('admin_given_history', JSON.stringify(adminHistory));
+
+            // Xodimning shaxsiy tarixiga saqlash
+            let myHistory = JSON.parse(localStorage.getItem('my_given_history')) || [];
+            myHistory.unshift(newEntry);
+            localStorage.setItem('my_given_history', JSON.stringify(myHistory));
+
+            // Botga ma'lumotni yuborish
+            tg.sendData(JSON.stringify({
+                type: "given_amount",
+                amount: parseFloat(enteredAmount),
+                comment: enteredComment
+            }));
+
+            document.getElementById('amount').value = '';
+            document.getElementById('comment').value = '';
+            loadMyHistory();
+            alert("Muvaffaqiyatli yuborildi!");
+        }
+
+        function loadMyHistory() {
+            const container = document.getElementById('myHistoryList');
+            let items = JSON.parse(localStorage.getItem('my_given_history')) || [];
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="history-card"><div class="comment">Hozircha tarix yo\'q.</div></div>';
                 return;
             }
 
             let html = '';
-            histories.forEach((item, index) => {
-                let statusClass = "status-wait";
-                let statusText = item.status || "Kutilmoqda 📌";
-
-                if (statusText.includes("Olindi") || statusText.includes("✅")) {
-                    statusText = "Olindi ✅";
-                    statusClass = "status-ok";
-                } else if (statusText.includes("Rad") || statusText.includes("❌")) {
-                    statusText = "Rad etildi ❌";
-                    statusClass = "status-no";
-                }
-
+            items.forEach(item => {
+                let formattedAmount = Number(item.amount).toLocaleString('en-US').replace(/,/g, ' ');
                 html += `
                     <div class="history-card">
-                        <div class="history-header">
-                            <span>📅 ${item.date} &nbsp; ⏰ ${item.time}</span>
-                            <span class="${statusClass}" onclick="toggleStatus(${index})" style="cursor:pointer;" title="Statusni o'zgartirish uchun bosing">${statusText}</span>
+                        <div class="card-header">
+                            <span>📅 ${item.date} ⏰ ${item.time}</span>
+                            <span class="status">${item.status}</span>
                         </div>
-                        <div class="amount">💰 ${item.amount} so'm</div>
+                        <div class="amount">${formattedAmount} so'm</div>
                         <div class="comment"><b>Izoh:</b> ${item.comment}</div>
                     </div>
                 `;
@@ -98,67 +178,7 @@
             container.innerHTML = html;
         }
 
-        // Rahbar tasdiqlagan bo'lsa, xodim bosa oladigan yoki avto o'zgartiradigan mantiq
-        function toggleStatus(index) {
-            if (histories[index].status.includes("Kutilmoqda")) {
-                histories[index].status = "Olindi ✅";
-            } else {
-                histories[index].status = "Kutilmoqda 📌";
-            }
-            localStorage.setItem('my_histories', JSON.stringify(histories));
-            renderHistory();
-        }
-
-        function openModal() {
-            document.getElementById('amountInput').value = '';
-            document.getElementById('commentInput').value = '';
-            document.getElementById('addModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('addModal').style.display = 'none';
-        }
-
-        function saveGivenAmount() {
-            const amount = document.getElementById('amountInput').value;
-            const comment = document.getElementById('commentInput').value;
-
-            if (!amount) {
-                alert("Iltimos, summani kiriting!");
-                return;
-            }
-
-            const now = new Date();
-            const date = String(now.getDate()).padStart(2, '0') + '.' + String(now.getMonth() + 1).padStart(2, '0') + '.' + now.getFullYear();
-            const time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-            const formattedAmount = Number(amount).toLocaleString('en-US').replace(/,/g, ' ');
-
-            const newItem = {
-                date: date,
-                time: time,
-                amount: formattedAmount,
-                comment: comment || "Izoh yo'q",
-                status: "Kutilmoqda 📌"
-            };
-
-            histories.unshift(newItem);
-            localStorage.setItem('my_histories', JSON.stringify(histories));
-            renderHistory();
-            closeModal();
-
-            const data = {
-                type: "given_amount",
-                amount: parseFloat(amount),
-                comment: comment || "Izoh yo'q"
-            };
-
-            tg.sendData(JSON.stringify(data));
-            setTimeout(() => {
-                tg.close();
-            }, 300);
-        }
-
-        renderHistory();
+        loadMyHistory();
     </script>
 </body>
 </html>

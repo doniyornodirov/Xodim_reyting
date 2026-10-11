@@ -6,125 +6,26 @@
     <title>Berilgan summa tarixi</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121824;
-            color: #ffffff;
-            padding: 15px;
-            margin: 0;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        h2 {
-            font-size: 20px;
-            margin: 0;
-        }
-        .add-btn {
-            background-color: #1e2636;
-            color: #4caf50;
-            border: 2px solid #4caf50;
-            font-size: 20px;
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        .history-card {
-            background-color: #1e2636;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border-left: 4px solid #4caf50;
-        }
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            color: #94a3b8;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #2a3447;
-            padding-bottom: 5px;
-        }
-        .amount {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffffff;
-            margin-bottom: 6px;
-        }
-        .comment {
-            font-size: 14px;
-            color: #cbd5e1;
-        }
+        body { font-family: Arial, sans-serif; background-color: #121824; color: #ffffff; padding: 15px; margin: 0; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h2 { font-size: 20px; margin: 0; }
+        .add-btn { background-color: #1e2636; color: #4caf50; border: 2px solid #4caf50; font-size: 20px; width: 42px; height: 42px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .history-card { background-color: #1e2636; padding: 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border-left: 4px solid #4caf50; }
+        .history-header { display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; margin-bottom: 8px; border-bottom: 1px solid #2a3447; padding-bottom: 5px; }
+        .amount { font-size: 18px; font-weight: bold; color: #ffffff; margin-bottom: 6px; }
+        .comment { font-size: 14px; color: #cbd5e1; }
         .status-ok { color: #4caf50; font-weight: bold; }
         .status-wait { color: #ffc107; font-weight: bold; }
         .status-no { color: #ff3b30; font-weight: bold; }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.7);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background-color: #1e2636;
-            padding: 22px;
-            border-radius: 14px;
-            width: 85%;
-            max-width: 350px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        }
-        .modal-content h3 {
-            margin-top: 0;
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #ffffff;
-            text-align: center;
-        }
-        .modal-content label {
-            font-size: 14px;
-            color: #b0bec5;
-        }
-        .modal-content input, .modal-content textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            background-color: #2a3447;
-            border: 1px solid #3f4d66;
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-        }
-        .modal-buttons button {
-            flex: 1;
-            padding: 11px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: #1e2636; padding: 22px; border-radius: 14px; width: 85%; max-width: 350px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        .modal-content h3 { margin-top: 0; font-size: 18px; margin-bottom: 15px; color: #ffffff; text-align: center; }
+        .modal-content label { font-size: 14px; color: #b0bec5; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; background-color: #2a3447; border: 1px solid #3f4d66; border-radius: 8px; color: #ffffff; font-size: 16px; box-sizing: border-box; }
+        .modal-buttons { display: flex; gap: 12px; }
+        .modal-buttons button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-save { background-color: #4caf50; color: white; }
         .btn-cancel { background-color: #2a3447; color: #b0bec5; border: 1px solid #3f4d66; }
     </style>
@@ -171,21 +72,23 @@
             }
 
             let html = '';
-            histories.forEach(item => {
+            histories.forEach((item, index) => {
                 let statusClass = "status-wait";
-                let statusText = item.status;
-                if (statusText.includes("Olindi") || statusText.includes("✅")) statusText = "Olindi ✅";
-                else if (statusText.includes("Rad") || statusText.includes("❌")) statusText = "Rad etildi ❌";
-                else statusText = "Kutilmoqda 📌";
+                let statusText = item.status || "Kutilmoqda 📌";
 
-                if (statusText.includes("✅")) statusClass = "status-ok";
-                if (statusText.includes("❌")) statusClass = "status-no";
+                if (statusText.includes("Olindi") || statusText.includes("✅")) {
+                    statusText = "Olindi ✅";
+                    statusClass = "status-ok";
+                } else if (statusText.includes("Rad") || statusText.includes("❌")) {
+                    statusText = "Rad etildi ❌";
+                    statusClass = "status-no";
+                }
 
                 html += `
                     <div class="history-card">
                         <div class="history-header">
                             <span>📅 ${item.date} &nbsp; ⏰ ${item.time}</span>
-                            <span class="${statusClass}">${statusText}</span>
+                            <span class="${statusClass}" onclick="toggleStatus(${index})" style="cursor:pointer;" title="Statusni o'zgartirish uchun bosing">${statusText}</span>
                         </div>
                         <div class="amount">💰 ${item.amount} so'm</div>
                         <div class="comment"><b>Izoh:</b> ${item.comment}</div>
@@ -193,6 +96,17 @@
                 `;
             });
             container.innerHTML = html;
+        }
+
+        // Rahbar tasdiqlagan bo'lsa, xodim bosa oladigan yoki avto o'zgartiradigan mantiq
+        function toggleStatus(index) {
+            if (histories[index].status.includes("Kutilmoqda")) {
+                histories[index].status = "Olindi ✅";
+            } else {
+                histories[index].status = "Kutilmoqda 📌";
+            }
+            localStorage.setItem('my_histories', JSON.stringify(histories));
+            renderHistory();
         }
 
         function openModal() {

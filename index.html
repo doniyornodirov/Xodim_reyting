@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisobot - Karta To'ldirish</title>
+    <title>Karta To'ldirish</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -57,7 +57,7 @@
         .btn-submit {
             width: 100%;
             padding: 14px;
-            background-color: #0088cc;
+            background-color: #22c55e;
             color: white;
             border: none;
             border-radius: 8px;
@@ -65,17 +65,11 @@
             font-weight: bold;
             cursor: pointer;
         }
-        /* Forma ostida hosil bo'ladigan istoriya kartochkalari */
-        .history-container {
-            margin-top: 20px;
-        }
         .history-title {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 12px;
-            color: #cbd5e1;
-            border-bottom: 1px solid #2a3447;
-            padding-bottom: 6px;
+            margin: 20px 0 12px 0;
+            color: #ffffff;
         }
         .history-card {
             background-color: #1e2636;
@@ -84,38 +78,37 @@
             margin-bottom: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             border-left: 4px solid #ffc107;
+            position: relative;
+        }
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 6px;
         }
         .card-number {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: bold;
             color: #ffffff;
             margin-bottom: 4px;
             letter-spacing: 0.5px;
         }
         .card-holder {
-            font-size: 14px;
+            font-size: 13px;
             color: #94a3b8;
             margin-bottom: 6px;
         }
         .card-amounts {
-            font-size: 14px;
-            color: #4caf50;
-            margin-bottom: 6px;
-        }
-        .card-status {
-            font-size: 13px;
+            font-size: 16px;
             font-weight: bold;
-            color: #ffc107;
+            color: #4ade80;
             margin-bottom: 8px;
         }
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #94a3b8;
-            border-top: 1px solid #2a3447;
-            padding-top: 8px;
-        }
+        .status-kutilmoqda { color: #facc15; }
+        .status-olindi { color: #4ade80; }
+        .status-rad { color: #f87171; }
     </style>
 </head>
 <body>
@@ -125,7 +118,6 @@
             ⚠️ Sizning birgina e'tiborsizligingiz, sizni moliyaviy qiyinchilikka solib qo'yadi!
         </div>
 
-        <!-- Kiritish paneli -->
         <div class="form-group">
             <label>16 xonali karta raqami:</label>
             <input type="text" id="cardNumber" placeholder="8600 0000 0000 0000" maxlength="19">
@@ -134,17 +126,14 @@
             <input type="text" id="cardHolder" placeholder="Ism Familiya">
 
             <label>Summa (so'm):</label>
-            <input type="number" id="amount" placeholder="1 000 000">
+            <input type="number" id="amount" placeholder="Summani kiriting (so'm)">
 
             <button class="btn-submit" onclick="sendCardData()">Guruhga yuborish</button>
         </div>
 
-        <!-- Forma ostidagi istoriya qismi (Siz rasmda belgilagan joy) -->
-        <div class="history-container">
-            <div class="history-title">📜 Yuborilgan so'rovlar tarixi</div>
-            <div id="historyList">
-                <div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo'sh.</div>
-            </div>
+        <div class="history-title">Mening Tarixatim</div>
+        <div id="historyList">
+            <div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo'sh.</div>
         </div>
     </div>
 
@@ -152,13 +141,12 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Sahifa ochilganda tarixlarni yuklash
         function loadHistory() {
             const container = document.getElementById('historyList');
             let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
 
             if (history.length === 0) {
-                container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo'sh.</div>';
+                container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
                 return;
             }
 
@@ -167,25 +155,31 @@
                 let formattedAmount = Number(item.amount).toLocaleString();
                 let formattedFinal = Number(item.final_amount || item.amount * 1.03).toLocaleString();
                 
+                let statusClass = "status-kutilmoqda";
+                let statusText = item.status || "Kutilmoqda 📌";
+                if (statusText.includes("Tasdiqlandi") || statusText.includes("Olindi")) {
+                    statusClass = "status-olindi";
+                } else if (statusText.includes("Rad")) {
+                    statusClass = "status-rad";
+                }
+
                 html += `
-                    <div class="history-card">
+                    <div class="history-card" style="border-left-color: ${statusClass === 'status-olindi' ? '#4ade80' : statusClass === 'status-rad' ? '#f87171' : '#facc15'};">
+                        <div class="card-header-row">
+                            <span>📅 ${item.date} ⏰ ${item.time}</span>
+                            <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
+                        </div>
                         <div class="card-number">💳 ${item.card_number}</div>
                         <div class="card-holder">👤 ${item.card_holder}</div>
-                        <div class="card-amounts">💰 ${formattedAmount} so'm ➔ <b>+3%: ${formattedFinal} so'm</b></div>
-                        <div class="card-status">📌 Status: ${item.status || "Kutilmoqda"}</div>
-                        <div class="card-footer">
-                            <span>📅 ${item.date}</span>
-                            <span>⏰ ${item.time}</span>
-                        </div>
+                        <div class="card-amounts">💰 Asl: ${formattedAmount} so'm ➔ <span style="color:#ffffff;">+3%: ${formattedFinal} so'm</span></div>
                     </div>
                 `;
             });
             container.innerHTML = html;
         }
 
-        // Ma'lumotlarni yuborish va tarixga yozish
         function sendCardData() {
-            let cardNumber = document.getElementById('cardNumber'].value.trim();
+            let cardNumber = document.getElementById('cardNumber').value.trim();
             let cardHolder = document.getElementById('cardHolder').value.trim();
             let amount = document.getElementById('amount').value.trim();
 
@@ -209,27 +203,25 @@
                 status: "Kutilmoqda 📌"
             };
 
-            // Brauzer xotirasiga saqlash (eng oxirgisi tepada chiqadi)
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
             myHistory.unshift(cardData);
             localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
-            // Botga yuborish
-            tg.sendData(JSON.stringify(cardData));
-            
-            alert("Karta ma'lumotlari muvaffaqiyatli yuborildi va tarixga yozildi!");
-            
-            // Maydonlarni tozalash
+            // Formani tozalash
             document.getElementById('cardNumber').value = '';
             document.getElementById('cardHolder').value = '';
             document.getElementById('amount').value = '';
 
-            // Istoriyani yangilash
+            // Ekranda darhol ko'rsatish
             loadHistory();
+
+            // Botga yuborish
+            tg.sendData(JSON.stringify(cardData));
         }
 
-        // Ishga tushganda tarixni chiqarish
-        loadHistory();
+        window.onload = function() {
+            loadHistory();
+        };
     </script>
 </body>
 </html>

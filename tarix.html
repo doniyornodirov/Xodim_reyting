@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olingan Summalar Tarixi</title>
+    <title>Xodimlardan Olingan Summalar</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -18,38 +18,96 @@
             margin: 0 auto;
         }
         h2 {
-            text-align: center;
             font-size: 20px;
             margin-bottom: 20px;
         }
-        .card {
+        .history-card {
             background-color: #1e2636;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border-left: 4px solid #ffc107;
         }
-        .item {
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #2a3447;
+            padding-bottom: 5px;
+        }
+        .employee {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4caf50;
+            margin-bottom: 4px;
+        }
+        .amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
             margin-bottom: 6px;
+        }
+        .comment {
             font-size: 14px;
+            color: #cbd5e1;
         }
         .status-ok { color: #4caf50; font-weight: bold; }
-        .status-no { color: #f44336; font-weight: bold; }
         .status-wait { color: #ffc107; font-weight: bold; }
+        .status-no { color: #ff3b30; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Xodimlardan Olingan Summalar</h2>
-        <div id="historyList">Yuklanmoqda...</div>
+        <div id="historyList">
+            Yuklanmoqda...
+        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Bu qism bot orqali ma'lumot olib kelinishi uchun tayyorlandi
-        document.getElementById('historyList').innerHTML = '<div class="card"><div class="item">Ma\'lumotlar bot orqali yangilanadi.</div></div>';
+        // Ma'lumotlarni localStorage yoki vaqtinchalik bazadan o'qish
+        // Agarda bot orqali bazadan kelmasa, localStorage'dagi umumiy ro'yxatni ko'rsatadi
+        function loadHistory() {
+            const container = document.getElementById('historyList');
+            
+            // Barcha saqlangan berilgan summalar tarixi
+            let histories = JSON.parse(localStorage.getItem('admin_given_history')) || [
+                { employee: "Doni", date: "12.10.2026", time: "00:16", amount: "10 505 005.00", comment: "Gsgdgdgdg", status: "Olindi ✅" }
+            ];
+
+            if (histories.length === 0) {
+                container.innerHTML = '<div class="history-card"><div class="comment">Hozircha olingan summalar tarixi yo\'q.</div></div>';
+                return;
+            }
+
+            let html = '';
+            histories.forEach(item => {
+                let statusClass = "status-wait";
+                if (item.status.includes("✅") || item.status.includes("Olindi")) statusClass = "status-ok";
+                if (item.status.includes("❌") || item.status.includes("Rad")) statusClass = "status-no";
+
+                html += `
+                    <div class="history-card">
+                        <div class="employee">👤 ${item.employee}</div>
+                        <div class="history-header">
+                            <span>📅 ${item.date} &nbsp; ⏰ ${item.time}</span>
+                            <span class="${statusClass}">${item.status}</span>
+                        </div>
+                        <div class="amount">💰 ${item.amount} so'm</div>
+                        <div class="comment"><b>Izoh:</b> ${item.comment}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        loadHistory();
     </script>
 </body>
 </html>

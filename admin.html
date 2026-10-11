@@ -56,11 +56,28 @@
             margin-bottom: 5px;
             font-size: 15px;
         }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
         .edit-btn {
             background-color: #2a3447;
             color: #ffc107;
             border: 1px solid #ffc107;
-            font-size: 18px;
+            font-size: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .delete-btn {
+            background-color: #2a3447;
+            color: #f44336;
+            border: 1px solid #f44336;
+            font-size: 16px;
             width: 36px;
             height: 36px;
             border-radius: 8px;
@@ -135,7 +152,7 @@
             <label>Telegram ID:</label>
             <input type="number" id="modalUserId" placeholder="Masalan: 854321054">
             <label>Xodim ismi:</label>
-            <input type="text" id="modalFullName" placeholder="Doniyor z">
+            <input type="text" id="modalFullName" placeholder="Doniyoz z">
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal()">Bekor qilish</button>
                 <button class="btn-save" onclick="saveData()">Saqlash</button>
@@ -147,8 +164,10 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Botdan kelgan xodimlar ro'yxatini qabul qilish (agar mavjud bo'lsa)
-        let employees = [];
+        let employees = [
+            { id: "854321054", name: "Doniyoz z" },
+            { id: "1079285432", name: "Samandar" }
+        ];
 
         function renderList() {
             const listContainer = document.getElementById('employeeList');
@@ -165,7 +184,10 @@
                             <div><b>Xodim:</b> ${emp.name}</div>
                             <div><b>ID:</b> ${emp.id}</div>
                         </div>
-                        <button class="edit-btn" onclick="openEditModal('${emp.id}', '${emp.name}')">✏️</button>
+                        <div class="actions">
+                            <button class="edit-btn" onclick="openEditModal('${emp.id}', '${emp.name}')" title="Tahrirlash">✏️</button>
+                            <button class="delete-btn" onclick="deleteEmployee('${emp.id}', '${emp.name}')" title="O'chirish">🗑️</button>
+                        </div>
                     </div>
                 `;
             });
@@ -214,11 +236,17 @@
             tg.close();
         }
 
-        // Test uchun ma'lumot (Bot orqali ma'lumot kelmasa ko'rinib turishi uchun)
-        employees = [
-            { id: "854321054", name: "Doniyoz z" },
-            { id: "1079285432", name: "Samandar" }
-        ];
+        function deleteEmployee(id, name) {
+            if (confirm(`Haqiqatan ham ${name} (ID: ${id}) ni tizimdan o'chirmoqchimisiz? U endi botdan foydalana olmaydi.`)) {
+                const data = {
+                    action: "delete_employee",
+                    user_id: id
+                };
+                tg.sendData(JSON.stringify(data));
+                tg.close();
+            }
+        }
+
         renderList();
     </script>
 </body>

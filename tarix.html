@@ -29,32 +29,30 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             border-left: 4px solid #ffc107;
         }
-        .employee {
-            font-size: 17px;
-            font-weight: bold;
-            color: #4caf50;
-            margin-bottom: 6px;
-        }
-        .details {
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 15px;
-            color: #cbd5e1;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
+        }
+        .employee {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4caf50;
+        }
+        .date-time {
+            font-size: 12px;
+            color: #94a3b8;
         }
         .amount {
             font-size: 19px;
             font-weight: bold;
             color: #ffffff;
-        }
-        .date-time {
-            font-size: 13px;
-            color: #94a3b8;
+            margin-bottom: 6px;
         }
         .comment {
             font-size: 13px;
-            color: #94a3b8;
+            color: #cbd5e1;
             margin-bottom: 12px;
         }
         .buttons {
@@ -76,19 +74,24 @@
             color: white;
         }
         .btn-danger {
-            background-color: #2a3447;
+            background-color: #1e2636;
             color: #ff3b30;
             border: 1px solid #ff3b30;
         }
         .status-badge {
             font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
         }
-        .status-ok { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; }
-        .status-no { background-color: rgba(255, 59, 48, 0.2); color: #ff3b30; }
-        .status-wait { background-color: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .status-ok { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; width: 100%; box-sizing: border-box; }
+        .status-no { background-color: rgba(255, 59, 48, 0.2); color: #ff3b30; width: 100%; box-sizing: border-box; }
+        .empty-text {
+            color: #94a3b8;
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -103,44 +106,45 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // LocalStorage yoki vaqtinchalik xotiradan ma'lumotlarni olish
-        function renderAdminHistory() {
+        function loadHistory() {
             const container = document.getElementById('historyList');
             
-            // Namuna ma'lumotlar va xodim kiritganlar
-            let items = JSON.parse(localStorage.getItem('admin_given_history')) || [
-                { id: 1, employee: "Doniyor 2", amount: "1 000 000", date: "11.10.2026", time: "11:15", comment: "O'zingizga berdim", status: "Kutilmoqda 📌" },
-                { id: 2, employee: "Samandar", amount: "10 000 000", date: "10.10.2026", time: "15:45", comment: "O'zingizga berdim", status: "Kutilmoqda 📌" }
-            ];
+            let items = JSON.parse(localStorage.getItem('admin_given_history')) || [];
+
+            // Eski namunali ma'lumotlarni tozalash (Doniyor 2 va Samandar larni olib tashlaydi)
+            items = items.filter(item => item.employee !== "Doniyor 2" && item.employee !== "Samandar");
+            localStorage.setItem('admin_given_history', JSON.stringify(items));
 
             if (items.length === 0) {
-                container.innerHTML = '<div class="history-card"><div class="comment">Hozircha arizalar yo\'q.</div></div>';
+                container.innerHTML = '<div class="history-card"><div class="empty-text">Hozircha olingan summalar tarixi yo\'q.</div></div>';
                 return;
             }
 
             let html = '';
             items.forEach((item, index) => {
                 let statusHtml = '';
-                if (item.status.includes("Kutilmoqda") || !item.status.includes("✅") && !item.status.includes("❌")) {
+                if (!item.status || item.status === "Kutilmoqda") {
                     statusHtml = `
                         <div class="buttons">
-                            <button class="btn btn-success" onclick="updateStatus(${index}, 'Olindi ✅')">Olindi</button>
-                            <button class="btn btn-danger" onclick="updateStatus(${index}, 'Rad etildi ❌')">Rad etildi</button>
+                            <button class="btn btn-success" onclick="updateStatus(${index}, 'Olindi')">Olindi</button>
+                            <button class="btn btn-danger" onclick="updateStatus(${index}, 'Rad etildi')">Rad etildi</button>
                         </div>
                     `;
-                } else if (item.status.includes("✅")) {
-                    statusHtml = `<div class="status-badge status-ok">Holat: Olindi ✅</div>`;
+                } else if (item.status === "Olindi") {
+                    statusHtml = `<div class="status-badge status-ok">Olindi ✅</div>`;
                 } else {
-                    statusHtml = `<div class="status-badge status-no">Holat: Rad etildi ❌</div>`;
+                    statusHtml = `<div class="status-badge status-no">Rad etildi ❌</div>`;
                 }
+
+                let formattedAmount = Number(item.amount).toLocaleString('en-US').replace(/,/g, ' ');
 
                 html += `
                     <div class="history-card">
-                        <div class="employee">Xodim: ${item.employee}</div>
-                        <div class="details">
-                            <div class="amount">${item.amount} so'm</div>
-                            <div class="date-time">${item.date} ${item.time}</div>
+                        <div class="card-header">
+                            <div class="employee">Xodim: ${item.employee}</div>
+                            <div class="date-time">${item.date || ''} ${item.time || ''}</div>
                         </div>
+                        <div class="amount">${formattedAmount} so'm</div>
                         <div class="comment"><b>Izoh:</b> ${item.comment || 'Izoh yo\'q'}</div>
                         ${statusHtml}
                     </div>
@@ -155,17 +159,18 @@
                 items[index].status = newStatus;
                 localStorage.setItem('admin_given_history', JSON.stringify(items));
                 
-                // Botga ma'lumot yuborish (agar kerak bo'lsa)
                 tg.sendData(JSON.stringify({
                     action: "update_status",
                     id: items[index].id,
                     status: newStatus
                 }));
             }
-            renderAdminHistory();
+            loadHistory();
         }
 
-        renderAdminHistory();
+        loadHistory();
+        // Har 2 sekundda yangilab turish
+        setInterval(loadHistory, 2000);
     </script>
 </body>
 </html>

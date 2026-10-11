@@ -78,7 +78,6 @@
             margin-bottom: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             border-left: 4px solid #ffc107;
-            position: relative;
         }
         .card-header-row {
             display: flex;
@@ -93,7 +92,6 @@
             font-weight: bold;
             color: #ffffff;
             margin-bottom: 4px;
-            letter-spacing: 0.5px;
         }
         .card-holder {
             font-size: 13px;
@@ -101,13 +99,13 @@
             margin-bottom: 6px;
         }
         .card-amounts {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: #4ade80;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         .status-kutilmoqda { color: #facc15; }
-        .status-olindi { color: #4ade80; }
+        .status-tasdiqlandi { color: #4ade80; }
         .status-rad { color: #f87171; }
     </style>
 </head>
@@ -156,15 +154,19 @@
                 let formattedFinal = Number(item.final_amount || item.amount * 1.03).toLocaleString();
                 
                 let statusClass = "status-kutilmoqda";
-                let statusText = item.status || "Kutilmoqda 📌";
+                let statusText = item.status || "Kutilmoqda";
+                let borderColor = "#facc15";
+
                 if (statusText.includes("Tasdiqlandi") || statusText.includes("Olindi")) {
-                    statusClass = "status-olindi";
+                    statusClass = "status-tasdiqlandi";
+                    borderColor = "#4ade80";
                 } else if (statusText.includes("Rad")) {
                     statusClass = "status-rad";
+                    borderColor = "#f87171";
                 }
 
                 html += `
-                    <div class="history-card" style="border-left-color: ${statusClass === 'status-olindi' ? '#4ade80' : statusClass === 'status-rad' ? '#f87171' : '#facc15'};">
+                    <div class="history-card" style="border-left-color: ${borderColor};">
                         <div class="card-header-row">
                             <span>📅 ${item.date} ⏰ ${item.time}</span>
                             <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
@@ -200,7 +202,7 @@
                 final_amount: parseFloat(amount) * 1.03,
                 date: dateStr,
                 time: timeStr,
-                status: "Kutilmoqda 📌"
+                status: "Kutilmoqda"
             };
 
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
@@ -212,10 +214,7 @@
             document.getElementById('cardHolder').value = '';
             document.getElementById('amount').value = '';
 
-            // Ekranda darhol ko'rsatish
             loadHistory();
-
-            // Botga yuborish
             tg.sendData(JSON.stringify(cardData));
         }
 

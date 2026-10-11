@@ -2,52 +2,99 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Rahbar Paneli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rahbar Paneli - Xodimlar</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 15px; margin: 0; }
-        h2, h3 { color: #333; }
-        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
-        th { background: #0088cc; color: white; }
-        input, button { padding: 8px; margin-top: 5px; font-size: 14px; }
-        button { background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121824;
+            color: #ffffff;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #1e2636;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            color: #b0bec5;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background-color: #2a3447;
+            border: 1px solid #3f4d66;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #43a047;
+        }
     </style>
 </head>
 <body>
-
-    <h2>📊 Rahbar Boshqaruv Paneli</h2>
-
-    <div class="card">
-        <h3>💰 Bugungi Statistikalar</h3>
-        <p><b>Bugungi umumiy to'lov:</b> <span id="todayTotal">0</span> so'm</p>
-        <div id="cardBreakdown"></div>
-    </div>
-
-    <div class="card">
-        <h3>👥 Xodimlar Ismini Tahrirlash</h3>
-        <div id="employeeList">
-            <!-- Xodimlar ro'yxati -->
-        </div>
+    <div class="container">
+        <h2>Xodim Ismini Tahrirlash</h2>
+        <form id="adminForm">
+            <div class="form-group">
+                <label for="userId">Xodimning Telegram ID raqami:</label>
+                <input type="number" id="userId" placeholder="Masalan: 8662254493" required>
+            </div>
+            <div class="form-group">
+                <label for="fullName">Xodimning Ism va Familiyasi:</label>
+                <input type="text" id="fullName" placeholder="Anvar Toshmatov" required>
+            </div>
+            <button type="submit">Saqlash va Yangilash</button>
+        </form>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        document.getElementById("todayTotal").innerText = "1,500,000";
-        
-        function saveEmployeeName(userId) {
-            const newName = document.getElementById(`name_${userId}`).value;
+        document.getElementById('adminForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userId = document.getElementById('userId').value;
+            const fullName = document.getElementById('fullName').value;
+
             const data = {
                 action: "edit_employee",
                 user_id: userId,
-                full_name: newName
+                full_name: fullName
             };
+
             tg.sendData(JSON.stringify(data));
-            alert("Xodim ismi saqlashga yuborildi!");
-        }
+        });
     </script>
 </body>
 </html>

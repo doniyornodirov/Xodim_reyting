@@ -10,183 +10,128 @@
             font-family: Arial, sans-serif;
             background-color: #121824;
             color: #ffffff;
-            padding: 20px;
+            padding: 15px;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
         .container {
-            background-color: #1e2636;
-            padding: 20px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            max-width: 500px;
+            margin: 0 auto;
         }
         h2 {
-            margin-bottom: 5px;
-            font-size: 22px;
-            color: #ffffff;
+            font-size: 20px;
+            margin-bottom: 10px;
         }
-        .subtitle {
-            font-size: 11px;
+        .warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
             color: #ffc107;
             margin-bottom: 20px;
-            line-height: 1.3;
+        }
+        .form-group {
+            background-color: #1e2636;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         label {
+            font-size: 13px;
+            color: #94a3b8;
             display: block;
-            margin-top: 15px;
-            font-size: 14px;
-            color: #b0bec5;
+            margin-bottom: 6px;
         }
         input {
             width: 100%;
             padding: 12px;
-            margin-top: 5px;
-            background-color: #2a3447;
-            border: 1px solid #3f4d66;
+            margin-bottom: 15px;
+            background-color: #121824;
+            border: 1px solid #2a3447;
             border-radius: 8px;
             color: #ffffff;
-            font-size: 16px;
             box-sizing: border-box;
+            font-size: 16px;
         }
-        input:focus {
-            border-color: #0088cc;
-            outline: none;
-        }
-        .info-text {
-            font-size: 12px;
-            color: #90a4ae;
-            margin-top: 4px;
-        }
-        button {
+        .btn-submit {
             width: 100%;
+            padding: 14px;
             background-color: #0088cc;
             color: white;
             border: none;
-            padding: 14px;
-            margin-top: 25px;
             border-radius: 8px;
             font-size: 16px;
-            cursor: pointer;
             font-weight: bold;
-        }
-        button:hover {
-            background-color: #0077b3;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h2>Karta To'ldirish</h2>
-        <div class="subtitle">⚠️ Sizning birgina e'tiborsizligingiz, sizni moliyaviy qiyinchilikka solib qo'yadi!</div>
+        <div class="warning">
+            ⚠️ Sizning birgina e'tiborsizligingiz, sizni moliyaviy qiyinchilikka solib qo'yadi!
+        </div>
 
-        <form id="reportForm">
-            <label for="card">16 xonali karta raqami:</label>
-            <input type="text" id="card" placeholder="8600 0000 0000 0000" maxlength="19" required>
+        <div class="form-group">
+            <label>16 xonali karta raqami:</label>
+            <input type="text" id="cardNumber" placeholder="8600 0000 0000 0000" maxlength="19">
 
-            <label for="cardHolder">Karta egasi:</label>
-            <input type="text" id="cardHolder" placeholder="Ism Familiya" required>
+            <label>Karta egasi:</label>
+            <input type="text" id="cardHolder" placeholder="Ism Familiya">
 
-            <label for="amount">Summa (so'm):</label>
-            <input type="text" id="amount" placeholder="1 000 000" required>
-            <div id="amountWords" class="info-text"></div>
-            <div id="amountWithPercent" class="info-text" style="color: #4caf50;"></div>
+            <label>Summa (so'm):</label>
+            <input type="number" id="amount" placeholder="1 000 000">
 
-            <button type="submit">Guruhga yuborish</button>
-        </form>
+            <button class="btn-submit" onclick="sendCardData()">Guruhga yuborish</button>
+        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Karta raqamini formatlash
-        const cardInput = document.getElementById('card');
-        cardInput.addEventListener('input', function (e) {
-            let value = e.target.value.replace(/\D/g, '').substring(0, 16);
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || '';
-            e.target.value = formattedValue;
-        });
+        function sendCardData() {
+            let cardNumber = document.getElementById('cardNumber').value.trim();
+            let cardHolder = document.getElementById('cardHolder').value.trim();
+            let amount = document.getElementById('amount').value.trim();
 
-        // Karta egasi (faqat harflar)
-        const holderInput = document.getElementById('cardHolder');
-        holderInput.addEventListener('input', function (e) {
-            e.target.value = e.target.value.replace(/[^a-zA-Zа-яА-ЯғҒқҚҳҲўЎ \`\'\-\.]/g, '');
-        });
-
-        // Summani formatlash va o'qilishini chiqarish
-        const amountInput = document.getElementById('amount');
-        amountInput.addEventListener('input', function (e) {
-            let cleanVal = e.target.value.replace(/\D/g, '');
-            if (cleanVal === '') {
-                e.target.value = '';
-                document.getElementById('amountWords').innerText = '';
-                document.getElementById('amountWithPercent').innerText = '';
+            if (!cardNumber || !cardHolder || !amount) {
+                alert("Iltimos, barcha maydonlarni to'ldiring!");
                 return;
             }
-            let num = parseInt(cleanVal, 10);
-            e.target.value = num.toLocaleString('en-US').replace(/,/g, ' ');
 
-            document.getElementById('amountWords').innerText = "O'qilishi: " + numberToUzbekWords(num) + " so'm";
-            let percentVal = num * 1.03;
-            document.getElementById('amountWithPercent').innerText = "3% bilan: " + percentVal.toLocaleString('en-US', {maximumFractionDigits: 2}).replace(/,/g, ' ') + " so'm";
-        });
+            let entryId = Date.now();
+            let now = new Date();
+            let dateStr = now.toLocaleDateString();
+            let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-        function numberToUzbekWords(num) {
-            if (num === 0) return "nol";
-            const birliklar = ["", "bir", "ikki", "uch", "to'rt", "besh", "olti", "yetti", "sakkiz", "to'qqiz"];
-            const onliklar = ["", "o'n", "yigirma", "o'ttiz", "qirq", "ellik", "oltmish", "yetmish", "sakson", "to'qson"];
-            const yuzliklar = ["", "bir yuz", "ikki yuz", "uch yuz", "to'rt yuz", "besh yuz", "olti yuz", "yetti yuz", "sakkiz yuz", "to'qqiz yuz"];
-            
-            function convertGroup(n) {
-                let yuz = Math.floor(n / 100);
-                let on = Math.floor((n % 100) / 10);
-                let bir = n % 10;
-                let res = "";
-                if (yuz > 0) res += yuzliklar[yuz] + " ";
-                if (on > 0) res += onliklar[on] + " ";
-                if (bir > 0) res += birliklar[bir] + " ";
-                return res.trim();
-            }
-
-            let darajalar = ["", "ming", "million", "milliard", "trillion"];
-            let qismlar = [];
-            let darajaIdx = 0;
-
-            while (num > 0) {
-                let qoldiq = num % 1000;
-                if (qoldiq > 0) {
-                    let str = convertGroup(qoldiq);
-                    if (darajaIdx > 0) {
-                        str += " " + darajalar[darajaIdx];
-                    }
-                    qismlar.unshift(str);
-                }
-                num = Math.floor(num / 1000);
-                darajaIdx++;
-            }
-            return qismlar.join(" ");
-        }
-
-        document.getElementById('reportForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const card = document.getElementById('card').value;
-            const cardHolder = document.getElementById('cardHolder').value;
-            const amount = document.getElementById('amount').value.replace(/\s/g, '');
-
-            const data = {
-                card: card,
+            let cardData = {
+                type: "card_transaction",
+                id: entryId,
+                card_number: cardNumber,
                 card_holder: cardHolder,
-                amount: amount
+                amount: parseFloat(amount),
+                final_amount: parseFloat(amount) * 1.03, // +3% qo'shilgan summa
+                date: dateStr,
+                time: timeStr,
+                status: "Kutilmoqda"
             };
 
-            tg.sendData(JSON.stringify(data));
-        });
+            // Brauzer xotirasiga vaqtincha saqlash
+            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            myHistory.unshift(cardData);
+            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
+
+            // Botga yuborish
+            tg.sendData(JSON.stringify(cardData));
+            
+            alert("Karta ma'lumotlari muvaffaqiyatli yuborildi!");
+            document.getElementById('cardNumber').value = '';
+            document.getElementById('cardHolder').value = '';
+            document.getElementById('amount').value = '';
+        }
     </script>
 </body>
 </html>

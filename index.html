@@ -145,7 +145,7 @@
 
         <div class="history-header">
             <div class="history-title">Mening Tarixatim</div>
-            <button class="btn-refresh" onclick="refreshHistory()">🔄 Yangilash</button>
+            <button class="btn-refresh" onclick="syncAndLoad()">🔄 Yangilash</button>
         </div>
 
         <div id="historyList">
@@ -175,7 +175,7 @@
                 let statusText = item.status || "Kutilmoqda 📌";
                 let borderColor = "#facc15";
 
-                if (statusText.includes("Tasdiqlandi") || statusText.includes("Olindi")) {
+                if (statusText.includes("Tasdiqlandi")) {
                     statusClass = "status-tasdiqlandi";
                     borderColor = "#4ade80";
                     statusText = "Tasdiqlandi ✅";
@@ -183,6 +183,8 @@
                     statusClass = "status-rad";
                     borderColor = "#f87171";
                     statusText = "Rad etildi ❌";
+                } else {
+                    statusText = "Kutilmoqda 📌";
                 }
 
                 html += `
@@ -200,11 +202,9 @@
             container.innerHTML = html;
         }
 
-        function refreshHistory() {
-            // Rahbar tasdiqlagach, xodim shu tugmani bosganda botga xabar ketadi yoki 
-            // localStorage dagi oxirgi xabarni tekshiradi. 
-            // Telegram botdan kelgan xabardagi statusni o'qib olish uchun quyidagicha qilamiz:
-            alert("Tarix yangilandi! Agar rahbar tasdiqlagan bo'lsa, status o'zgaradi.");
+        function syncAndLoad() {
+            // Hech qanday xabarnomasiz (alert'siz) botga sinxronlash so'rovini jo'natadi
+            tg.sendData(JSON.stringify({ action: "sync_status" }));
             loadHistory();
         }
 
@@ -214,7 +214,6 @@
             let amount = document.getElementById('amount').value.trim();
 
             if (!cardNumber || !cardHolder || !amount) {
-                alert("Iltimos, barcha maydonlarni to'ldiring!");
                 return;
             }
 
@@ -230,7 +229,7 @@
                 final_amount: parseFloat(amount) * 1.03,
                 date: dateStr,
                 time: timeStr,
-                status: "Kutilmoqda 📌"
+                status: "Kutilmoqda"
             };
 
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];

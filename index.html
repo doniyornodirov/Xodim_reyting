@@ -157,9 +157,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Telegram botdan kelgan xabarlarni yoki eventlarni o'qish imkoniyati
-        // Agar xodim botga o'tib tasdiqlanganini ko'rsa va bu yerda "Yangilash" tugmasini bossa, 
-        // localStorage dagi oxirgi statusni avtomatik "Tasdiqlandi" qilish uchun qo'shimcha mantiq qo'shamiz:
         function loadHistory() {
             const container = document.getElementById('historyList');
             let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
@@ -170,7 +167,7 @@
             }
 
             let html = '';
-            history.forEach((item, index) => {
+            history.forEach(item => {
                 let formattedAmount = Number(item.amount).toLocaleString();
                 let formattedFinal = Number(item.final_amount || item.amount * 1.03).toLocaleString();
                 
@@ -190,13 +187,7 @@
                     <div class="history-card" style="border-left-color: ${borderColor};">
                         <div class="card-header-row">
                             <span>📅 ${item.date} ⏰ ${item.time}</span>
-                            <span class="${statusClass}" style="font-weight: bold;">
-                                <select onchange="updateStatus(${index}, this.value)" style="background: #121824; color: #fff; border: 1px solid #2a3447; border-radius: 4px; padding: 2px;">
-                                    <option value="Kutilmoqda 📌" ${statusText.includes('Kutilmoqda') ? 'selected' : ''}>Kutilmoqda 📌</option>
-                                    <option value="Tasdiqlandi ✅" ${statusText.includes('Tasdiqlandi') ? 'selected' : ''}>Tasdiqlandi ✅</option>
-                                    <option value="Rad etildi ❌" ${statusText.includes('Rad') ? 'selected' : ''}>Rad etildi ❌</option>
-                                </select>
-                            </span>
+                            <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
                         </div>
                         <div class="card-number">💳 ${item.card_number}</div>
                         <div class="card-holder">👤 ${item.card_holder}</div>
@@ -205,16 +196,6 @@
                 `;
             });
             container.innerHTML = html;
-        }
-
-        // Xodim o'zi ham statusni o'zgartira olishi yoki rahbar tasdiqlagach bu yerda belgilashi uchun qo'shimcha imkoniyat
-        function updateStatus(index, newStatus) {
-            let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
-            if (history[index]) {
-                history[index].status = newStatus;
-                localStorage.setItem('my_card_history', JSON.stringify(history));
-                loadHistory();
-            }
         }
 
         function sendCardData() {
@@ -246,7 +227,6 @@
             myHistory.unshift(cardData);
             localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
-            // Formani tozalash
             document.getElementById('cardNumber').value = '';
             document.getElementById('cardHolder').value = '';
             document.getElementById('amount').value = '';

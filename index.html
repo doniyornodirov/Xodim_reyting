@@ -3,35 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xodim Hisobot Formasi</title>
+    <title>Karta To'ldirish</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: var(--tg-theme-bg-color, #f4f6f9); color: var(--tg-theme-text-color, #000); }
-        .card { background: var(--tg-theme-secondary-bg-color, #fff); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; outline: none; }
-        input:focus { border-color: #2481cc; }
-        button { width: 100%; padding: 14px; background-color: #2481cc; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:active { background-color: #1b659d; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121824;
+            color: #ffffff;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #1e2636;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        h2 {
+            margin-bottom: 5px;
+            font-size: 22px;
+            color: #ffffff;
+        }
+        .subtitle {
+            font-size: 11px;
+            color: #ffc107;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #b0bec5;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            background-color: #2a3447;
+            border: 1px solid #3f4d66;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color: #0088cc;
+            outline: none;
+        }
+        .info-text {
+            font-size: 12px;
+            color: #90a4ae;
+            margin-top: 4px;
+        }
+        button {
+            width: 100%;
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            padding: 14px;
+            margin-top: 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0077b3;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Hisobot topshirish</h2>
+
+    <div class="container">
+        <h2>Karta To'ldirish</h2>
+        <div class="subtitle">⚠️ Sizning birgina e'tiborsizligingiz, sizni moliyaviy qiyinchilikka solib qo'yadi!</div>
+
         <form id="reportForm">
-            <div class="form-group">
-                <label>16 xonali karta raqami:</label>
-                <input type="text" id="card" maxlength="16" placeholder="8600123456789012" required>
-            </div>
-            <div class="form-group">
-                <label>Ism va Familiya:</label>
-                <input type="text" id="fullname" placeholder="Doniyor Nodirov" required>
-            </div>
-            <div class="form-group">
-                <label>Summa (so'm):</label>
-                <input type="number" id="amount" placeholder="1000000" required>
-            </div>
+            <label for="card">16 xonali karta raqami:</label>
+            <input type="text" id="card" placeholder="8600 0000 0000 0000" maxlength="19" required>
+
+            <label for="fullname">Ism va Familiya:</label>
+            <input type="text" id="fullname" placeholder="Ism va Familiya" required>
+
+            <label for="amount">Summa (so'm):</label>
+            <input type="text" id="amount" placeholder="1 000 000" required>
+            <div id="amountWords" class="info-text"></div>
+            <div id="amountWithPercent" class="info-text" style="color: #4caf50;"></div>
+
             <button type="submit">Guruhga yuborish</button>
         </form>
     </div>
@@ -40,27 +105,90 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        document.getElementById("reportForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            
-            const card = document.getElementById("card").value.trim();
-            const fullname = document.getElementById("fullname").value.trim();
-            const amount = parseFloat(document.getElementById("amount").value);
+        // Karta raqamini formatlash (har 4 ta raqamdan keyin bo'sh joy)
+        const cardInput = document.getElementById('card');
+        cardInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '').substring(0, 16);
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || '';
+            e.target.value = formattedValue;
+        });
 
-            if (card.length !== 16 || isNaN(card)) {
-                alert("Karta raqami 16 ta raqamdan iborat bo'lishi shart!");
+        // Ism va Familiya (faqat harflar va bo'sh joy)
+        const fullnameInput = document.getElementById('fullname');
+        fullnameInput.addEventListener('input', function (e) {
+            e.target.value = e.target.value.replace(/[^a-zA-Zа-яА-ЯғҒқҚҳҲўЎ \`\'\-\.]/g, '');
+        });
+
+        // Summani formatlash va o'qilishini chiqarish
+        const amountInput = document.getElementById('amount');
+        amountInput.addEventListener('input', function (e) {
+            let cleanVal = e.target.value.replace(/\D/g, '');
+            if (cleanVal === '') {
+                e.target.value = '';
+                document.getElementById('amountWords').innerText = '';
+                document.getElementById('amountWithPercent').innerText = '';
                 return;
             }
+            let num = parseInt(cleanVal, 10);
+            e.target.value = num.toLocaleString('en-US').replace(/,/g, ' ');
+
+            // O'qilishi va 3% hisobi
+            document.getElementById('amountWords').innerText = "O'qilishi: " + numberToUzbekWords(num) + " so'm";
+            let percentVal = num * 1.03;
+            document.getElementById('amountWithPercent').innerText = "3% bilan: " + percentVal.toLocaleString('en-US', {maximumFractionDigits: 2}).replace(/,/g, ' ') + " so'm";
+        });
+
+        // Sonni o'zbek tilida so'z bilan o'qish funksiyasi
+        function numberToUzbekWords(num) {
+            if (num === 0) return "nol";
+            const birliklar = ["", "bir", "ikki", "uch", "to'rt", "besh", "olti", "yetti", "sakkiz", "to'qqiz"];
+            const onliklar = ["", "o'n", "yigirma", "o'ttiz", "qirq", "ellik", "oltmish", "yetmish", "sakson", "to'qson"];
+            const yuzliklar = ["", "bir yuz", "ikki yuz", "uch yuz", "to'rt yuz", "besh yuz", "olti yuz", "yetti yuz", "sakkiz yuz", "to'qqiz yuz"];
+            
+            function convertGroup(n) {
+                let yuz = Math.floor(n / 100);
+                let on = Math.floor((n % 100) / 10);
+                let bir = n % 10;
+                let res = "";
+                if (yuz > 0) res += yuzliklar[yuz] + " ";
+                if (on > 0) res += onliklar[on] + " ";
+                if (bir > 0) res += birliklar[bir] + " ";
+                return res.trim();
+            }
+
+            let darajalar = ["", "ming", "million", "milliard", "trillion"];
+            let qismlar = [];
+            let darajaIdx = 0;
+
+            while (num > 0) {
+                let qoldiq = num % 1000;
+                if (qoldiq > 0) {
+                    let str = convertGroup(qoldiq);
+                    if (darajaIdx > 0) {
+                        str += " " + darajalar[darajaIdx];
+                    }
+                    qismlar.unshift(str);
+                }
+                num = Math.floor(num / 1000);
+                darajaIdx++;
+            }
+            return qismlar.join(" ");
+        }
+
+        // Form yuborilganda
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const card = document.getElementById('card').value;
+            const fullname = document.getElementById('fullname').value;
+            const amount = document.getElementById('amount').value.replace(/\s/g, '');
 
             const data = {
                 card: card,
                 fullname: fullname,
-                amount: amount,
-                user_id: tg.initDataUnsafe?.user?.id || 0
+                amount: amount
             };
 
             tg.sendData(JSON.stringify(data));
-            tg.close();
         });
     </script>
 </body>

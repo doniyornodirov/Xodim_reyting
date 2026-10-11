@@ -102,29 +102,27 @@
                 return;
             }
 
-            let entryId = Date.now();
             let now = new Date();
             let dateStr = now.toLocaleDateString();
             let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
+            // Bot qabul qilishi uchun type aniq "card_transaction" qilib berildi
             let cardData = {
                 type: "card_transaction",
-                id: entryId,
                 card_number: cardNumber,
                 card_holder: cardHolder,
                 amount: parseFloat(amount),
-                final_amount: parseFloat(amount) * 1.03, // +3% qo'shilgan summa
                 date: dateStr,
                 time: timeStr,
                 status: "Kutilmoqda"
             };
 
-            // Brauzer xotirasiga vaqtincha saqlash
+            // Shaxsiy tarix uchun localStorage ga saqlash
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
             myHistory.unshift(cardData);
             localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
-            // Botga yuborish
+            // Telegram botga yuborish
             tg.sendData(JSON.stringify(cardData));
             
             alert("Karta ma'lumotlari muvaffaqiyatli yuborildi!");

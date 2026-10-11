@@ -185,7 +185,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // LocalStorage yordamida xodimlarni saqlaymiz
         let employees = JSON.parse(localStorage.getItem('employees')) || [
             { id: "854321054", name: "Doniyoz z" },
             { id: "1079285432", name: "Samandar" }
@@ -248,7 +247,6 @@
                 return;
             }
 
-            // Yangi qo'shish yoki tahrirlashni localga yozish
             let existing = employees.find(e => e.id === userId);
             if (existing) {
                 existing.name = fullName;
@@ -266,6 +264,9 @@
             };
 
             tg.sendData(JSON.stringify(data));
+            setTimeout(() => {
+                tg.close();
+            }, 300);
         }
 
         function openDeleteModal(id) {
@@ -280,7 +281,7 @@
         function confirmDelete() {
             const id = document.getElementById('deleteUserId').value;
             
-            // Ro'yxatdan darhol o'chirish va LocalStorage'ni yangilash
+            // Sahifadan va xotiradan darhol o'chirish
             employees = employees.filter(emp => emp.id !== id);
             localStorage.setItem('employees', JSON.stringify(employees));
             renderList();
@@ -290,10 +291,4 @@
                 action: "delete_employee",
                 user_id: id
             };
-            tg.sendData(JSON.stringify(data));
-        }
-
-        renderList();
-    </script>
-</body>
-</html>
+            tg.sendData(JSON

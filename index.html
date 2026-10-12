@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hisobot va Tarix</title>
+    <title>Hisobot</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -32,7 +32,6 @@
             margin: 0 auto;
         }
 
-        /* Форма ввода */
         .form-group {
             margin-bottom: 12px;
         }
@@ -62,7 +61,6 @@
             margin-bottom: 24px;
         }
 
-        /* Раздел истории */
         .history-header {
             display: flex;
             justify-content: space-between;
@@ -121,7 +119,6 @@
             color: var(--accent-green);
         }
 
-        /* Статусы */
         .status-badge {
             font-size: 13px;
             font-weight: bold;
@@ -142,7 +139,6 @@
 
 <div class="container">
 
-    <!-- ФОРМА С ПОЛЕМ ДЛЯ КАРТЫ -->
     <div class="form-group">
         <input type="text" id="cardNumber" class="form-input" placeholder="Karta raqami (masalan: 8600 ...)">
     </div>
@@ -154,15 +150,12 @@
     </div>
     <button class="btn-submit" onclick="sendData()">Guruhga yuborish</button>
 
-    <!-- ИСТОРИЯ -->
     <div class="history-header">
         <span class="history-title">Mening Tarixim</span>
         <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
     </div>
 
-    <div id="historyContainer">
-        <!-- Записи загружаются динамически -->
-    </div>
+    <div id="historyContainer"></div>
 
 </div>
 
@@ -172,7 +165,6 @@
 
     const API_URL = window.location.origin;
 
-    // Загрузка истории
     async function loadHistory() {
         try {
             const response = await fetch(`${API_URL}/api/history`);
@@ -204,7 +196,61 @@
                 const cardHtml = `
                     <div class="history-card ${cardClass}">
                         <div class="card-header">
-                            <span>📅 ${item.date \vert{}\vert{} ''} ⏰${item.time || ''}</span>
+                            <span>📅 ${item.date || ''} ⏰ ${item.time || ''}</span>
                             <span class="status-badge ${statusClass}">${statusText}</span>
                         </div>
                         <div class="card-number">💳 ${item.card_number || '---'}</div>
+                        <div class="card-user">👤 ${item.name || ''}</div>
+                        <div class="card-amount">
+                            💰 Asl: ${item.amount} so'm ➔ +3%: ${item.total_amount} so'm
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        } catch (error) {
+            console.error('Tarixni yuklashda xatolik:', error);
+        }
+    }
+
+    async function sendData() {
+        const cardNumber = document.getElementById('cardNumber').value.trim();
+        const name = document.getElementById('userName').value.trim();
+        const amount = document.getElementById('amount').value.trim();
+
+        if (!cardNumber || !name || !amount) {
+            alert("Iltimos, barcha maydonlarni to'ldiring!");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/api/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    card_number: cardNumber, 
+                    name: name, 
+                    amount: amount 
+                })
+            });
+
+            if (response.ok) {
+                document.getElementById('cardNumber').value = '';
+                document.getElementById('userName').value = '';
+                document.getElementById('amount').value = '';
+                loadHistory();
+            } else {
+                alert("Xatolik yuz berdi, qaytadan urinib ko'ring.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Ulanishda xatolik!");
+        }
+    }
+
+    loadHistory();
+    setInterval(loadHistory, 3000);
+</script>
+
+</body>
+</html>

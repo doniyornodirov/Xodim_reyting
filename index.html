@@ -32,9 +32,9 @@
             margin: 0 auto;
         }
 
-        /* Forma uslublari */
+        /* Форма ввода */
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .form-input {
@@ -62,7 +62,7 @@
             margin-bottom: 24px;
         }
 
-        /* Tarix uslublari */
+        /* Раздел истории */
         .history-header {
             display: flex;
             justify-content: space-between;
@@ -121,7 +121,7 @@
             color: var(--accent-green);
         }
 
-        /* Status nishonlari */
+        /* Статусы */
         .status-badge {
             font-size: 13px;
             font-weight: bold;
@@ -142,7 +142,10 @@
 
 <div class="container">
 
-    <!-- FORMA -->
+    <!-- ФОРМА С ПОЛЕМ ДЛЯ КАРТЫ -->
+    <div class="form-group">
+        <input type="text" id="cardNumber" class="form-input" placeholder="Karta raqami (masalan: 8600 ...)">
+    </div>
     <div class="form-group">
         <input type="text" id="userName" class="form-input" placeholder="Ism Familiya">
     </div>
@@ -151,15 +154,14 @@
     </div>
     <button class="btn-submit" onclick="sendData()">Guruhga yuborish</button>
 
-    <!-- TARIX BO'LIMI -->
+    <!-- ИСТОРИЯ -->
     <div class="history-header">
         <span class="history-title">Mening Tarixim</span>
         <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
     </div>
 
-    <!-- CARDS CONTAINER (Karta ro'yxati chiqadigan joy) -->
     <div id="historyContainer">
-        <!-- Javascript orqali yuklanadi -->
+        <!-- Записи загружаются динамически -->
     </div>
 
 </div>
@@ -168,10 +170,9 @@
     const tg = window.Telegram?.WebApp;
     if (tg) tg.expand();
 
-    // Serveringiz manzili (Render URL)
     const API_URL = window.location.origin;
 
-    // Tarixni yuklash funksiyasi
+    // Загрузка истории
     async function loadHistory() {
         try {
             const response = await fetch(`${API_URL}/api/history`);
@@ -207,4 +208,3 @@
                             <span class="status-badge ${statusClass}">${statusText}</span>
                         </div>
                         <div class="card-number">💳 ${item.card_number || '---'}</div>
-                        <div

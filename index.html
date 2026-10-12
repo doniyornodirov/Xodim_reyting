@@ -205,8 +205,12 @@
         }
 
         function syncAndLoad() {
+            // Rahbar tasdiqlagach, statuslar bazadan o'qilib bot orqali xodimga yuboriladi
             tg.sendData(JSON.stringify({ action: "sync_status" }));
-            loadHistory();
+            
+            // Shuningdek, xodimlar uchun qilingan my_tarix.html sahifasida bazadagi statuslar 
+            // 100% real vaqtda ko'rsatilishini unutmang!
+            alert("Sizning so'rovlaringizning oxirgi holati botga yuborildi. Telegram chatni tekshiring!");
         }
 
         function sendCardData() {

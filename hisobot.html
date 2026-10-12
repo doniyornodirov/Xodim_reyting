@@ -16,6 +16,7 @@
         .container {
             max-width: 500px;
             margin: 0 auto;
+            padding-bottom: 30px;
         }
         .form-row {
             display: flex;
@@ -41,15 +42,36 @@
             box-sizing: border-box;
             outline: none;
         }
-        .form-row input::placeholder {
-            color: #64748b;
-            font-weight: normal;
+        .form-row input[readonly] {
+            background-color: #cbd5e1;
+            color: #1e293b;
+            cursor: not-allowed;
         }
         .section-title {
-            color: #e5b352;
+            color: #ef4444;
             font-size: 15px;
-            font-weight: 500;
+            font-weight: bold;
             margin: 15px 0 10px 0;
+            border-top: 1px solid #334155;
+            padding-top: 10px;
+        }
+        .total-box {
+            background-color: #1e293b;
+            border: 2px solid #22c55e;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .total-title {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .total-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #22c55e;
+            margin-top: 4px;
         }
         .btn-submit {
             width: 100%;
@@ -73,64 +95,69 @@
         
         <div class="form-row">
             <label>Paynet:</label>
-            <input type="number" id="paynet" placeholder="">
+            <input type="number" id="paynet" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>💳 Card:</label>
-            <input type="number" id="card" placeholder="">
+            <label>💳 Card (+3%):</label>
+            <input type="number" id="card" placeholder="0" readonly>
         </div>
 
         <div class="form-row">
             <label>💰 Leviy:</label>
-            <input type="number" id="leviy" placeholder="">
+            <input type="number" id="leviy" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>🔌 SIMcard:</label>
-            <input type="number" id="simcard" placeholder="">
+            <input type="number" id="simcard" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>💸 Qarzdorlik:</label>
-            <input type="number" id="qarzdorlik" placeholder="">
+            <input type="number" id="qarzdorlik" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>📻 Qarz uchun:</label>
-            <input type="number" id="qarz_uchun" placeholder="">
+            <input type="number" id="qarz_uchun" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="section-title">Minus:</div>
 
         <div class="form-row">
             <label>📠 Terminal:</label>
-            <input type="number" id="terminal" placeholder="">
+            <input type="number" id="terminal" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>⛑️ Berildi:</label>
-            <input type="number" id="berildi" placeholder="">
+            <input type="number" id="berildi" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>💵 Kunlik:</label>
-            <input type="number" id="kunlik" placeholder="">
+            <input type="number" id="kunlik" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>🆓 Skidka:</label>
-            <input type="number" id="skidka" placeholder="">
+            <input type="number" id="skidka" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>🔴 Xarajat:</label>
-            <input type="number" id="xarajat" placeholder="">
+            <input type="number" id="xarajat" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>ℹ️ Comment:</label>
             <input type="text" id="comment" placeholder="Izox yozishingiz mumkin">
+        </div>
+
+        <div class="total-box">
+            <div class="total-title">Bugun topshiriladigan jami summa:</div>
+            <div class="total-amount" id="totalDisplay">0 so'm</div>
         </div>
 
         <button class="btn-submit" onclick="sendReport()">So'rov yuborish</button>
@@ -140,7 +167,49 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        // Karta to'ldirish tarixidan bugungi tasdiqlangan +3% bilan barcha summani hisoblash
+        function loadCardTotal() {
+            let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            let totalCard = 0;
+
+            history.forEach(item => {
+                // Agar status Tasdiqlandi bo'lsa yoki barchasini hisoblamoqchi bo'lsangiz
+                let finalAmt = parseFloat(item.final_amount || (item.amount * 1.03));
+                totalCard += finalAmt;
+            });
+
+            document.getElementById('card').value = Math.round(totalCard);
+            calculateTotal();
+        }
+
+        // Jami topshiriladigan summani hisoblash (Plus - Minus)
+        function calculateTotal() {
+            let paynet = parseFloat(document.getElementById('paynet').value) || 0;
+            let card = parseFloat(document.getElementById('card').value) || 0;
+            let leviy = parseFloat(document.getElementById('leviy').value) || 0;
+            let simcard = parseFloat(document.getElementById('simcard').value) || 0;
+            let qarzdorlik = parseFloat(document.getElementById('qarzdorlik').value) || 0;
+            let qarz_uchun = parseFloat(document.getElementById('qarz_uchun').value) || 0;
+
+            let plusTotal = paynet + card + leviy + simcard + qarzdorlik + qarz_uchun;
+
+            let terminal = parseFloat(document.getElementById('terminal').value) || 0;
+            let berildi = parseFloat(document.getElementById('berildi').value) || 0;
+            let kunlik = parseFloat(document.getElementById('kunlik').value) || 0;
+            let skidka = parseFloat(document.getElementById('skidka').value) || 0;
+            let xarajat = parseFloat(document.getElementById('xarajat').value) || 0;
+
+            let minusTotal = terminal + berildi + kunlik + skidka + xarajat;
+
+            let finalTotal = plusTotal - minusTotal;
+
+            document.getElementById('totalDisplay').innerText = finalTotal.toLocaleString() + " so'm";
+            return finalTotal;
+        }
+
         function sendReport() {
+            let finalTotal = calculateTotal();
+
             const reportData = {
                 type: "daily_report",
                 paynet: parseFloat(document.getElementById('paynet').value) || 0,
@@ -154,12 +223,16 @@
                 kunlik: parseFloat(document.getElementById('kunlik').value) || 0,
                 skidka: parseFloat(document.getElementById('skidka').value) || 0,
                 xarajat: parseFloat(document.getElementById('xarajat').value) || 0,
+                total_final: finalTotal,
                 comment: document.getElementById('comment').value.trim() || "Izoh yo'q"
             };
 
-            // Telegram botga ma'lumot yuborish
             tg.sendData(JSON.stringify(reportData));
         }
+
+        window.onload = function() {
+            loadCardTotal();
+        };
     </script>
 </body>
 </html>

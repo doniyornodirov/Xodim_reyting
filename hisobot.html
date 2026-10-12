@@ -171,6 +171,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const debtParam = urlParams.get('debt');
             const givenParam = urlParams.get('given');
+            const cardParam = urlParams.get('card');
             
             if (debtParam !== null && debtParam !== "") {
                 document.getElementById('qarzdorlik').value = parseFloat(debtParam) || 0;
@@ -184,19 +185,12 @@
                 document.getElementById('berildi').value = 0;
             }
 
-            calculateTotal();
-        }
+            if (cardParam !== null && cardParam !== "") {
+                document.getElementById('card').value = Math.round(parseFloat(cardParam) || 0);
+            } else {
+                document.getElementById('card').value = 0;
+            }
 
-        function loadCardTotal() {
-            let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
-            let totalCard = 0;
-
-            history.forEach(item => {
-                let finalAmt = parseFloat(item.final_amount || (item.amount * 1.03));
-                totalCard += finalAmt;
-            });
-
-            document.getElementById('card').value = Math.round(totalCard);
             calculateTotal();
         }
 
@@ -219,4 +213,64 @@
 
             let finalTotal = plusTotal - minusTotal;
 
-            document.getElementById('totalDisplay').innerText = finalTotal.toLocaleString() + " so
+            document.getElementById('totalDisplay').innerText = finalTotal.toLocaleString() + " so'm";
+            return finalTotal;
+        }
+
+        function sendReport() {
+            const paynetVal = document.getElementById('paynet').value.trim();
+            const leviyVal = document.getElementById('leviy').value.trim();
+            const simcardVal = document.getElementById('simcard').value.trim();
+            const qarzUchunVal = document.getElementById('qarz_uchun').value.trim();
+
+            const terminalVal = document.getElementById('terminal').value.trim();
+            const kunlikVal = document.getElementById('kunlik').value.trim();
+            const skidkaVal = document.getElementById('skidka').value.trim();
+            const xarajatVal = document.getElementById('xarajat').value.trim();
+            
+            let commentVal = document.getElementById('comment').value.trim();
+            if (!commentVal) {
+                commentVal = "Izoh yo'q";
+            }
+
+            const debtTotal = parseFloat(document.getElementById('qarzdorlik').value) || 0;
+            const qarzUchunNum = parseFloat(qarzUchunVal) || 0;
+
+            if (paynetVal === "" || leviyVal === "" || simcardVal === "" || qarzUchunVal === "") {
+                alert("⚠️ Paynet, Leviy, SIMcard va Qarz uchun maydonlarini to'ldirish majburiy! (Mavjud bo'lmasa, 0 kiritib o'ting)");
+                return;
+            }
+
+            if (debtTotal > 0 && qarzUchunNum < 50000) {
+                alert(`⚠️ Sizda ${debtTotal.toLocaleString()} so'm qarzdorlik mavjud!\n"Qarz uchun" maydoniga kamida 50 000 so'm kiritishingiz shart.`);
+                return;
+            }
+
+            let finalTotal = calculateTextTotal = calculateTotal();
+
+            const reportData = {
+                type: "daily_report",
+                paynet: parseFloat(paynetVal) || 0,
+                card: parseFloat(document.getElementById('card').value) || 0,
+                leviy: parseFloat(leviyVal) || 0,
+                simcard: parseInt(simcardVal) || 0,
+                qarzdorlik: debtTotal,
+                qarz_uchun: qarzUchunNum,
+                terminal: parseFloat(terminalVal) || 0,
+                berildi: parseFloat(document.getElementById('berildi').value) || 0,
+                kunlik: parseFloat(kunlikVal) || 0,
+                skidka: parseFloat(skidkaVal) || 0,
+                xarajat: parseFloat(xarajatVal) || 0,
+                total_final: finalTotal,
+                comment: commentVal
+            };
+
+            tg.sendData(JSON.stringify(reportData));
+        }
+
+        window.onload = function() {
+            loadParamsFromURL();
+        };
+    </script>
+</body>
+</html>

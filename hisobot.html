@@ -94,7 +94,7 @@
     <div class="container">
         
         <div class="form-row">
-            <label>Paynet:</label>
+            <label>Paynet *:</label>
             <input type="number" id="paynet" placeholder="0" oninput="calculateTotal()">
         </div>
 
@@ -104,13 +104,13 @@
         </div>
 
         <div class="form-row">
-            <label>💰 Leviy:</label>
+            <label>💰 Leviy *:</label>
             <input type="number" id="leviy" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>🔌 SIMcard (dona):</label>
-            <input type="number" id="simcard" placeholder="0 dona">
+            <label>🔌 SIMcard (dona) *:</label>
+            <input type="number" id="simcard" placeholder="0">
         </div>
 
         <div class="form-row">
@@ -119,14 +119,14 @@
         </div>
 
         <div class="form-row">
-            <label>📻 Qarz uchun:</label>
+            <label>📻 Qarz uchun *:</label>
             <input type="number" id="qarz_uchun" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="section-title">Minus:</div>
 
         <div class="form-row">
-            <label>Terminal:</label>
+            <label>Terminal *:</label>
             <input type="number" id="terminal" placeholder="0" oninput="calculateTotal()">
         </div>
 
@@ -136,23 +136,23 @@
         </div>
 
         <div class="form-row">
-            <label>Kunlik:</label>
+            <label>Kunlik *:</label>
             <input type="number" id="kunlik" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>Skidka:</label>
+            <label>Skidka *:</label>
             <input type="number" id="skidka" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>Xarajat:</label>
+            <label>Xarajat *:</label>
             <input type="number" id="xarajat" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>Comment:</label>
-            <input type="text" id="comment" placeholder="Izoh yozishingiz mumkin">
+            <label>Comment *:</label>
+            <input type="text" id="comment" placeholder="Izoh yozing (masalan: Ok)">
         </div>
 
         <div class="total-box">
@@ -167,7 +167,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // URL manzilidan Qarzdorlik va Tasdiqlangan Berildi summalarini o'qib olish
         function loadParamsFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const debtParam = urlParams.get('debt');
@@ -188,7 +187,6 @@
             calculateTotal();
         }
 
-        // Card bo'limidagi +3% bilan hisoblangan summani olish
         function loadCardTotal() {
             let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
             let totalCard = 0;
@@ -226,23 +224,52 @@
         }
 
         function sendReport() {
+            // Field qiymatlarini olish
+            const paynetVal = document.getElementById('paynet').value.trim();
+            const leviyVal = document.getElementById('leviy').value.trim();
+            const simcardVal = document.getElementById('simcard').value.trim();
+            const qarzUchunVal = document.getElementById('qarz_uchun').value.trim();
+            const terminalVal = document.getElementById('terminal').value.trim();
+            const kunlikVal = document.getElementById('kunlik').value.trim();
+            const skidkaVal = document.getElementById('skidka').value.trim();
+            const xarajatVal = document.getElementById('xarajat').value.trim();
+            const commentVal = document.getElementById('comment').value.trim();
+
+            const debtTotal = parseFloat(document.getElementById('qarzdorlik').value) || 0;
+            const qarzUchunNum = parseFloat(qarzUchunVal) || 0;
+
+            // 1. Majburiy maydonlar bo'shligini tekshirish
+            if (paynetVal === "" || leviyVal === "" || simcardVal === "" || qarzUchunVal === "" ||
+                terminalVal === "" || kunlikVal === "" || skidkaVal === "" || xarajatVal === "" || commentVal === "") {
+                alert("⚠️ Barcha maydonlarni to'ldirish majburiy! (Agar qiymat bo'lmasa, 0 deb kiritib o'ting)");
+                return;
+            }
+
+            // 2. Qarz bo'lsa, eng kamida 50 000 so'm kiritilishini majburiy qilish
+            if (debtTotal > 0) {
+                if (qarzUchunNum < 50000) {
+                    alert(`⚠️ Sizda ${debtTotal.toLocaleString()} so'm qarzdorlik mavjud!\n"Qarz uchun" maydoniga kamida 50 000 so'm kiritishingiz shart.`);
+                    return;
+                }
+            }
+
             let finalTotal = calculateTotal();
 
             const reportData = {
                 type: "daily_report",
-                paynet: parseFloat(document.getElementById('paynet').value) || 0,
+                paynet: parseFloat(paynetVal) || 0,
                 card: parseFloat(document.getElementById('card').value) || 0,
-                leviy: parseFloat(document.getElementById('leviy').value) || 0,
-                simcard: parseInt(document.getElementById('simcard').value) || 0,
-                qarzdorlik: parseFloat(document.getElementById('qarzdorlik').value) || 0,
-                qarz_uchun: parseFloat(document.getElementById('qarz_uchun').value) || 0,
-                terminal: parseFloat(document.getElementById('terminal').value) || 0,
+                leviy: parseFloat(leviyVal) || 0,
+                simcard: parseInt(simcardVal) || 0,
+                qarzdorlik: debtTotal,
+                qarz_uchun: qarzUchunNum,
+                terminal: parseFloat(terminalVal) || 0,
                 berildi: parseFloat(document.getElementById('berildi').value) || 0,
-                kunlik: parseFloat(document.getElementById('kunlik').value) || 0,
-                skidka: parseFloat(document.getElementById('skidka').value) || 0,
-                xarajat: parseFloat(document.getElementById('xarajat').value) || 0,
+                kunlik: parseFloat(kunlikVal) || 0,
+                skidka: parseFloat(skidkaVal) || 0,
+                xarajat: parseFloat(xarajatVal) || 0,
                 total_final: finalTotal,
-                comment: document.getElementById('comment').value.trim() || "Izoh yo'q"
+                comment: commentVal
             };
 
             tg.sendData(JSON.stringify(reportData));

@@ -154,27 +154,38 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        let tg = null;
+        try {
+            tg = window.Telegram.WebApp;
+            tg.expand();
+        } catch (e) {
+            console.log("Telegram WebApp topilmadi");
+        }
 
         function loadHistory() {
             const container = document.getElementById('historyList');
+            if (!container) return;
+
             let history = [];
             try {
-                history = JSON.parse(localStorage.getItem('my_card_history')) || [];
+                let saved = localStorage.getItem('my_card_history');
+                if (saved) {
+                    history = JSON.parse(saved);
+                }
             } catch (e) {
+                console.error("Xatolik:", e);
                 history = [];
             }
 
-            if (history.length === 0) {
+            if (!Array.isArray(history) || history.length === 0) {
                 container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
                 return;
             }
 
             let html = '';
             history.forEach(item => {
-                let formattedAmount = Number(item.amount).toLocaleString();
-                let formattedFinal = Number(item.final_amount || item.amount * 1.03).toLocaleString();
+                let formattedAmount = Number(item.amount || 0).toLocaleString();
+                let formattedFinal = Number(item.final_amount || (item.amount ? item.amount * 1.03 : 0)).toLocaleString();
                 
                 let statusClass = "status-kutilmoqda";
                 let statusText = item.status || "Kutilmoqda";
@@ -197,11 +208,11 @@
                 html += `
                     <div class="history-card" style="border-left-color: ${borderColor};">
                         <div class="card-header-row">
-                            <span>📅 ${item.date} ⏰ ${item.time}</span>
+                            <span>📅 ${item.date || ''} ⏰ ${item.time || ''}</span>
                             <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
                         </div>
-                        <div class="card-number">💳 ${item.card_number}</div>
-                        <div class="card-holder">👤 ${item.card_holder}</div>
+                        <div class="card-number">💳 ${item.card_number || ''}</div>
+                        <div class="card-holder">👤 ${item.card_holder || ''}</div>
                         <div class="card-amounts">💰 Asl: ${formattedAmount} so'm ➔ <span style="color:#ffffff;">+3%: ${formattedFinal} so'm</span></div>
                     </div>
                 `;
@@ -236,10 +247,13 @@
 
             let myHistory = [];
             try {
-                myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+                let saved = localStorage.getItem('my_card_history');
+                if (saved) myHistory = JSON.parse(saved);
             } catch (e) {
                 myHistory = [];
             }
+
+            if (!Array.isArray(myHistory)) myHistory = [];
 
             myHistory.unshift(cardData);
             localStorage.setItem('my_card_history', JSON.stringify(myHistory));
@@ -249,7 +263,10 @@
             document.getElementById('amount').value = '';
 
             loadHistory();
-            tg.sendData(JSON.stringify(cardData));
+            
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify(cardData));
+            }
         }
 
         window.onload = function() {

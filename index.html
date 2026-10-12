@@ -145,7 +145,7 @@
 
         <div class="history-header">
             <div class="history-title">Mening Tarixatim</div>
-            <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
+            <button class="btn-refresh" onclick="syncAndRefresh()">🔄 Yangilash</button>
         </div>
 
         <div id="historyList">
@@ -184,12 +184,6 @@
                 status: "Kutilmoqda"
             };
 
-            // Rahbar paneli uchun admin_card_history ga saqlaymiz
-            let adminHistory = JSON.parse(localStorage.getItem('admin_card_history')) || [];
-            adminHistory.unshift(cardData);
-            localStorage.setItem('admin_card_history', JSON.stringify(adminHistory));
-
-            // Xodimning shaxsiy tarixiga saqlaymiz
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
             myHistory.unshift(cardData);
             localStorage.setItem('my_card_history', JSON.stringify(myHistory));
@@ -202,20 +196,18 @@
             tg.sendData(JSON.stringify(cardData));
         }
 
+        function syncAndRefresh() {
+            // Botga bazadan holatni so'rash uchun ma'lumot yuboramiz
+            tg.sendData(JSON.stringify({ action: "sync_card_status" }));
+            
+            // LocalStorage dagi ma'lumotni darhol ekranga chiqaramiz
+            loadHistory();
+            alert("Tarix yangilandi!");
+        }
+
         function loadHistory() {
             const container = document.getElementById('historyList');
-            
-            let adminHistory = JSON.parse(localStorage.getItem('admin_card_history')) || [];
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
-
-            // Admin panelidagi o'zgargan statuslarni xodim tarixiga sinxronlaymiz
-            myHistory.forEach(myItem => {
-                let found = adminHistory.find(adm => adm.id === myItem.id);
-                if (found) {
-                    myItem.status = found.status;
-                }
-            });
-            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
             if (myHistory.length === 0) {
                 container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
@@ -260,9 +252,8 @@
             container.innerHTML = html;
         }
 
-        // Sahifa ochilganda va har 2 sekundda xuddi my_tarix.html kabi avtomatik yangilanib turadi
         loadHistory();
-        setInterval(loadHistory, 2000);
+        setInterval(loadHistory, 3000);
     </script>
 </body>
 </html>

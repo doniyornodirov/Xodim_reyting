@@ -1,1 +1,165 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rating Operators - Hisobot Topshirish</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #211f1f;
+            color: #ffffff;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .form-row label {
+            font-size: 15px;
+            color: #e5b352;
+            font-weight: 500;
+            flex: 1;
+        }
+        .form-row input {
+            width: 55%;
+            padding: 10px 12px;
+            background-color: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            color: #0f172a;
+            font-size: 15px;
+            font-weight: 600;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .form-row input::placeholder {
+            color: #64748b;
+            font-weight: normal;
+        }
+        .section-title {
+            color: #e5b352;
+            font-size: 15px;
+            font-weight: 500;
+            margin: 15px 0 10px 0;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .btn-submit:active {
+            background-color: #006699;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="form-row">
+            <label>Paynet:</label>
+            <input type="number" id="paynet" placeholder="">
+        </div>
 
+        <div class="form-row">
+            <label>💳 Card:</label>
+            <input type="number" id="card" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>💰 Leviy:</label>
+            <input type="number" id="leviy" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>🔌 SIMcard:</label>
+            <input type="number" id="simcard" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>💸 Qarzdorlik:</label>
+            <input type="number" id="qarzdorlik" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>📻 Qarz uchun:</label>
+            <input type="number" id="qarz_uchun" placeholder="">
+        </div>
+
+        <div class="section-title">Minus:</div>
+
+        <div class="form-row">
+            <label>📠 Terminal:</label>
+            <input type="number" id="terminal" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>⛑️ Berildi:</label>
+            <input type="number" id="berildi" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>💵 Kunlik:</label>
+            <input type="number" id="kunlik" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>🆓 Skidka:</label>
+            <input type="number" id="skidka" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>🔴 Xarajat:</label>
+            <input type="number" id="xarajat" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <label>ℹ️ Comment:</label>
+            <input type="text" id="comment" placeholder="Izox yozishingiz mumkin">
+        </div>
+
+        <button class="btn-submit" onclick="sendReport()">So'rov yuborish</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function sendReport() {
+            const reportData = {
+                type: "daily_report",
+                paynet: parseFloat(document.getElementById('paynet').value) || 0,
+                card: parseFloat(document.getElementById('card').value) || 0,
+                leviy: parseFloat(document.getElementById('leviy').value) || 0,
+                simcard: parseFloat(document.getElementById('simcard').value) || 0,
+                qarzdorlik: parseFloat(document.getElementById('qarzdorlik').value) || 0,
+                qarz_uchun: parseFloat(document.getElementById('qarz_uchun').value) || 0,
+                terminal: parseFloat(document.getElementById('terminal').value) || 0,
+                berildi: parseFloat(document.getElementById('berildi').value) || 0,
+                kunlik: parseFloat(document.getElementById('kunlik').value) || 0,
+                skidka: parseFloat(document.getElementById('skidka').value) || 0,
+                xarajat: parseFloat(document.getElementById('xarajat').value) || 0,
+                comment: document.getElementById('comment').value.trim() || "Izoh yo'q"
+            };
+
+            // Telegram botga ma'lumot yuborish
+            tg.sendData(JSON.stringify(reportData));
+        }
+    </script>
+</body>
+</html>

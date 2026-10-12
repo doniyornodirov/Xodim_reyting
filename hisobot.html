@@ -162,10 +162,22 @@
 
         <button class="btn-submit" onclick="sendReport()">So'rov yuborish</button>
     </div>
-
-    <script>
+<script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+
+        // URL dan rahbar belgilagan qarzdorlikni o'qib olish
+        function loadDebtFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const debtParam = urlParams.get('debt');
+            
+            if (debtParam !== null && debtParam !== "") {
+                document.getElementById('qarzdorlik').value = parseFloat(debtParam) || 0;
+            } else {
+                document.getElementById('qarzdorlik').value = 0;
+            }
+            calculateTotal();
+        }
 
         // Karta to'ldirish bo'limidan +3% bilan bo'lgan summani olish
         function loadCardTotal() {
@@ -180,19 +192,6 @@
             document.getElementById('card').value = Math.round(totalCard);
             calculateTotal();
         }
-
-        // Botdan qarzdorlik ma'lumotini so'rash
-        function initData() {
-            tg.sendData(JSON.stringify({ action: "get_employee_data" }));
-        }
-
-        // Telegram botdan kelgan xabarlarni (EMP_DEBT) qabul qilish
-        Telegram.WebApp.onEvent('mainButtonClicked', function(){});
-        
-        // Agar bot matnli xabar yuborsa (masalan EMP_DEBT:50000)
-        window.addEventListener('message', function(event) {
-            // WebApp orqali kelgan qiymatni tekshirish
-        });
 
         // Kirimlar va chiqimlarni jamlab yakuniy summani hisoblash
         function calculateTotal() {
@@ -244,14 +243,7 @@
 
         window.onload = function() {
             loadCardTotal();
-            initData();
-            
-            // Vaqtincha saqlangan qarzdorlikni yuklash (agar mavjud bo'lsa)
-            let savedDebt = localStorage.getItem('my_employee_debt');
-            if(savedDebt) {
-                document.getElementById('qarzdorlik').value = savedDebt;
-                calculateTotal();
-            }
+            loadDebtFromURL();
         };
     </script>
 </body>

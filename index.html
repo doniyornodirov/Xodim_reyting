@@ -159,7 +159,12 @@
 
         function loadHistory() {
             const container = document.getElementById('historyList');
-            let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            } catch (e) {
+                history = [];
+            }
 
             if (history.length === 0) {
                 container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
@@ -193,7 +198,6 @@
                     <div class="history-card" style="border-left-color: ${borderColor};">
                         <div class="card-header-row">
                             <span>📅 ${item.date} ⏰ ${item.time}</span>
-                            <!-- Aynan mana shu joyda status o'zgarib ko'rinadi -->
                             <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
                         </div>
                         <div class="card-number">💳 ${item.card_number}</div>
@@ -225,3 +229,32 @@
                 card_holder: cardHolder,
                 amount: parseFloat(amountVal),
                 final_amount: parseFloat(amountVal) * 1.03,
+                date: dateStr,
+                time: timeStr,
+                status: "Kutilmoqda"
+            };
+
+            let myHistory = [];
+            try {
+                myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            } catch (e) {
+                myHistory = [];
+            }
+
+            myHistory.unshift(cardData);
+            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
+
+            document.getElementById('cardNumber').value = '';
+            document.getElementById('cardHolder').value = '';
+            document.getElementById('amount').value = '';
+
+            loadHistory();
+            tg.sendData(JSON.stringify(cardData));
+        }
+
+        window.onload = function() {
+            loadHistory();
+        };
+    </script>
+</body>
+</html>

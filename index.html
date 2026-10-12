@@ -145,7 +145,7 @@
 
         <div class="history-header">
             <div class="history-title">Mening Tarixatim</div>
-            <button class="btn-refresh" onclick="syncWithBot()">🔄 Yangilash</button>
+            <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
         </div>
 
         <div id="historyList">
@@ -159,54 +159,66 @@
 
         function loadHistory() {
             const container = document.getElementById('historyList');
-            let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
-
-            if (history.length === 0) {
-                container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
-                return;
-            }
-
-            let html = '';
-            history.forEach(item => {
-                let formattedAmount = Number(item.amount).toLocaleString();
-                let formattedFinal = Number(item.final_amount || item.amount * 1.03).toLocaleString();
-                
-                let statusClass = "status-kutilmoqda";
-                let statusText = item.status || "Kutilmoqda";
-                let borderColor = "#facc15";
-
-                if (statusText === "Tasdiqlandi" || statusText.includes("Tasdiqlandi")) {
-                    statusClass = "status-tasdiqlandi";
-                    borderColor = "#4ade80";
-                    statusText = "Tasdiqlandi ✅";
-                } else if (statusText === "Rad etildi" || statusText.includes("Rad")) {
-                    statusClass = "status-rad";
-                    borderColor = "#f87171";
-                    statusText = "Rad etildi ❌";
+            
+            // Telegram CloudStorage dan ma'lumotlarni o'qiymiz
+            tg.CloudStorage.getItem('my_card_history', (err, value) => {
+                let history = [];
+                if (!err && value) {
+                    try {
+                        history = JSON.parse(value);
+                    } catch (e) {
+                        history = JSON.parse(localStorage.getItem('my_card_history')) || [];
+                    }
                 } else {
-                    statusClass = "status-kutilmoqda";
-                    borderColor = "#facc15";
-                    statusText = "Kutilmoqda ⏳";
+                    history = JSON.parse(localStorage.getItem('my_card_history')) || [];
                 }
 
-                html += `
-                    <div class="history-card" style="border-left-color: ${borderColor};">
-                        <div class="card-header-row">
-                            <span>📅 ${item.date} ⏰ ${item.time}</span>
-                            <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
-                        </div>
-                        <div class="card-number">💳 ${item.card_number}</div>
-                        <div class="card-holder">👤 ${item.card_holder}</div>
-                        <div class="card-amounts">💰 Asl: ${formattedAmount} so'm ➔ <span style="color:#ffffff;">+3%: ${formattedFinal} so'm</span></div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
+                if (!Array.isArray(history) || history.length === 0) {
+                    container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
+                    return;
+                }
 
-        // "🔄 Yangilash" tugmasi bosilganda botga xabar yuboriladi va chatda statuslar chiqadi
-        function syncWithBot() {
-            tg.sendData(JSON.stringify({ action: "sync_status" }));
+                let html = '';
+                history.forEach(item => {
+                    let formattedAmount = Number(item.amount || 0).toLocaleString();
+                    let formattedFinal = Number(item.final_amount || (item.amount ? item.amount * 1.03 : 0)).toLocaleString();
+                    
+                    let statusClass = "status-kutilmoqda";
+                    let statusText = item.status || "Kutilmoqda";
+                    let borderColor = "#facc15";
+
+                    if (statusText === "Tasdiqlandi" || statusText.includes("Tasdiqlandi")) {
+                        statusClass = "status-tasdiqlandi";
+                        borderColor = "#4ade80";
+                        statusText = "Tasdiqlandi ✅";
+                    } else if (statusText === "Rad etildi" || statusText.includes("Rad")) {
+                        statusClass = "status-rad";
+                        borderColor = "#f87171";
+                        statusText = "Rad etildi ❌";
+                    } else {
+                        statusClass = "status-kutilmoqda";
+                        borderColor = "#facc15";
+                        statusText = "Kutilmoqda ⏳";
+                    }
+
+                    html += `
+                        <div class="history-card" style="border-left-color: ${borderColor};">
+                            <div class="card-header-row">
+                                <span>📅 ${item.date || ''} ⏰ ${item.time || ''}</span>
+                                <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
+                            </div>
+                            <div class="card-number">💳 ${item.card_number || ''}</div>
+                            <div class="card-holder">👤 ${item.card_holder || ''}</div>
+                            <div class="card-amounts">💰 Asl: ${formattedAmount} so'm ➔ <span style="color:#ffffff;">+3%: ${formattedFinal} so'm</span></div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            });
+            
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
         }
 
         function sendCardData() {
@@ -234,16 +246,28 @@
                 status: "Kutilmoqda"
             };
 
-            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
-            myHistory.unshift(cardData);
-            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
+            tg.CloudStorage.getItem('my_card_history', (err, value) => {
+                let myHistory = [];
+                if (!err && value) {
+                    try { myHistory = JSON.parse(value); } catch(e) {}
+                }
+                if (!Array.isArray(myHistory) || myHistory.length === 0) {
+                    myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+                }
 
-            document.getElementById('cardNumber').value = '';
-            document.getElementById('cardHolder').value = '';
-            document.getElementById('amount').value = '';
+                myHistory.unshift(cardData);
+                
+                // CloudStorage ga saqlaymiz
+                tg.CloudStorage.setItem('my_card_history', JSON.stringify(myHistory));
+                localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
-            loadHistory();
-            tg.sendData(JSON.stringify(cardData));
+                document.getElementById('cardNumber').value = '';
+                document.getElementById('cardHolder').value = '';
+                document.getElementById('amount').value = '';
+
+                loadHistory();
+                tg.sendData(JSON.stringify(cardData));
+            });
         }
 
         window.onload = function() {

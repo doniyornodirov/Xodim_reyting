@@ -205,17 +205,13 @@
         }
 
         function syncAndLoad() {
-            // "Mening tarixatim" ni real vaqtda bazadan olish uchun my_tarix.html sahifasidan foydalanish tavsiya etiladi.
-            // Agar shu sahifada qolishni istasangiz, localStorage dagi oxirgi statusni yangilash uchun xabar yuboramiz:
             tg.sendData(JSON.stringify({ action: "sync_status" }));
             loadHistory();
-            alert("Tarix yangilandi!");
         }
 
         function sendCardData() {
             let cardNumber = document.getElementById('cardNumber').value.trim();
             let cardHolder = document.getElementById('cardHolder').value.trim();
-            let amount = document.getElementById('amount'].value.trim(); // xatolik chiqmasligi uchun to'g'irlandi
             let amountVal = document.getElementById('amount').value.trim();
 
             if (!cardNumber || !cardHolder || !amountVal) {

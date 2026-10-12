@@ -172,10 +172,9 @@
                 let formattedFinal = Number(item.final_amount || item.amount * 1.03).toLocaleString();
                 
                 let statusClass = "status-kutilmoqda";
-                let statusText = item.status || "Kutilmoqda 📌";
+                let statusText = item.status || "Kutilmoqda";
                 let borderColor = "#facc15";
 
-                // Status matnini to'g'ri tekshirish va rang berish
                 if (statusText.includes("Tasdiqlandi") || statusText === "Tasdiqlandi") {
                     statusClass = "status-tasdiqlandi";
                     borderColor = "#4ade80";
@@ -206,24 +205,20 @@
         }
 
         function syncAndLoad() {
-            // Rahbar tasdiqlagach, tarixni yangilash uchun botga signal yuboramiz
+            // "Mening tarixatim" ni real vaqtda bazadan olish uchun my_tarix.html sahifasidan foydalanish tavsiya etiladi.
+            // Agar shu sahifada qolishni istasangiz, localStorage dagi oxirgi statusni yangilash uchun xabar yuboramiz:
             tg.sendData(JSON.stringify({ action: "sync_status" }));
-            
-            // Vaqtinchalik simulyatsiya yoki localStorage dagi oxirgi holatni qayta o'qish
             loadHistory();
             alert("Tarix yangilandi!");
         }
 
-        // Agar rahbar guruhda tasdiqlasa yoki rad etsa, xodim o'zining alohida "my_tarix.html" sahifasida 
-        // to'g'ridan-to'g'ri bazadan o'qigani uchun u yerda avtomatik o'zgaradi. 
-        // Ushbu index.html dagi localStorage'ni yangilash uchun esa quyidagicha qilsak bo'ladi:
-        
         function sendCardData() {
             let cardNumber = document.getElementById('cardNumber').value.trim();
             let cardHolder = document.getElementById('cardHolder').value.trim();
-            let amount = document.getElementById('amount').value.trim();
+            let amount = document.getElementById('amount'].value.trim(); // xatolik chiqmasligi uchun to'g'irlandi
+            let amountVal = document.getElementById('amount').value.trim();
 
-            if (!cardNumber || !cardHolder || !amount) {
+            if (!cardNumber || !cardHolder || !amountVal) {
                 alert("Barcha maydonlarni to'ldiring!");
                 return;
             }
@@ -236,8 +231,8 @@
                 type: "card_transaction",
                 card_number: cardNumber,
                 card_holder: cardHolder,
-                amount: parseFloat(amount),
-                final_amount: parseFloat(amount) * 1.03,
+                amount: parseFloat(amountVal),
+                final_amount: parseFloat(amountVal) * 1.03,
                 date: dateStr,
                 time: timeStr,
                 status: "Kutilmoqda"

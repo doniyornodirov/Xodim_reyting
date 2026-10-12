@@ -91,7 +91,7 @@
             border-radius: 12px;
             margin-bottom: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border-left: 4px solid #facc15;
+            border-left: 4px solid #ffc107;
         }
         .card-header-row {
             display: flex;
@@ -118,9 +118,9 @@
             color: #4ade80;
             margin-bottom: 4px;
         }
-        .status-kutilmoqda { color: #facc15; font-weight: bold; }
-        .status-tasdiqlandi { color: #4ade80; font-weight: bold; }
-        .status-rad { color: #f87171; font-weight: bold; }
+        .status-wait { color: #ffc107; font-weight: bold; }
+        .status-ok { color: #4caf50; font-weight: bold; }
+        .status-no { color: #ff3b30; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -145,7 +145,7 @@
 
         <div class="history-header">
             <div class="history-title">Mening Tarixatim</div>
-            <button class="btn-refresh" onclick="syncWithBot()">🔄 Yangilash</button>
+            <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
         </div>
 
         <div id="historyList">
@@ -157,9 +157,65 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        function sendCardData() {
+            let cardNumber = document.getElementById('cardNumber').value.trim();
+            let cardHolder = document.getElementById('cardHolder').value.trim();
+            let amountVal = document.getElementById('amount').value.trim();
+
+            if (!cardNumber || !cardHolder || !amountVal) {
+                alert("Barcha maydonlarni to'ldiring!");
+                return;
+            }
+
+            let entryId = Date.now();
+            let now = new Date();
+            let dateStr = now.toLocaleDateString();
+            let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            let cardData = {
+                id: entryId,
+                type: "card_transaction",
+                card_number: cardNumber,
+                card_holder: cardHolder,
+                amount: parseFloat(amountVal),
+                final_amount: parseFloat(amountVal) * 1.03,
+                date: dateStr,
+                time: timeStr,
+                status: "Kutilmoqda"
+            };
+
+            // Rahbar paneli uchun admin_card_history ga saqlaymiz
+            let adminHistory = JSON.parse(localStorage.getItem('admin_card_history')) || [];
+            adminHistory.unshift(cardData);
+            localStorage.setItem('admin_card_history', JSON.stringify(adminHistory));
+
+            // Xodimning shaxsiy tarixiga saqlaymiz
+            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            myHistory.unshift(cardData);
+            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
+
+            document.getElementById('cardNumber').value = '';
+            document.getElementById('cardHolder').value = '';
+            document.getElementById('amount').value = '';
+
+            loadHistory();
+            tg.sendData(JSON.stringify(cardData));
+        }
+
         function loadHistory() {
             const container = document.getElementById('historyList');
+            
+            let adminHistory = JSON.parse(localStorage.getItem('admin_card_history')) || [];
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+
+            // Admin panelidagi o'zgargan statuslarni xodim tarixiga sinxronlaymiz
+            myHistory.forEach(myItem => {
+                let found = adminHistory.find(adm => adm.id === myItem.id);
+                if (found) {
+                    myItem.status = found.status;
+                }
+            });
+            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
             if (myHistory.length === 0) {
                 container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
@@ -171,21 +227,21 @@
                 let formattedAmount = Number(item.amount || 0).toLocaleString();
                 let formattedFinal = Number(item.final_amount || (item.amount ? item.amount * 1.03 : 0)).toLocaleString();
                 
-                let statusClass = "status-kutilmoqda";
+                let statusClass = "status-wait";
                 let statusText = item.status || "Kutilmoqda";
-                let borderColor = "#facc15";
+                let borderColor = "#ffc107";
 
                 if (statusText === "Tasdiqlandi" || statusText.includes("Tasdiqlandi")) {
-                    statusClass = "status-tasdiqlandi";
-                    borderColor = "#4ade80";
+                    statusClass = "status-ok";
+                    borderColor = "#4caf50";
                     statusText = "Tasdiqlandi ✅";
                 } else if (statusText === "Rad etildi" || statusText.includes("Rad")) {
-                    statusClass = "status-rad";
-                    borderColor = "#f87171";
+                    statusClass = "status-no";
+                    borderColor = "#ff3b30";
                     statusText = "Rad etildi ❌";
                 } else {
-                    statusClass = "status-kutilmoqda";
-                    borderColor = "#facc15";
+                    statusClass = "status-wait";
+                    borderColor = "#ffc107";
                     statusText = "Kutilmoqda ⏳";
                 }
 
@@ -204,49 +260,9 @@
             container.innerHTML = html;
         }
 
-        // "Yangilash" tugmasi bosilganda botga so'rov ketadi
-        function syncWithBot() {
-            tg.sendData(JSON.stringify({ action: "sync_card_status" }));
-            alert("Statuslar tekshirildi! Botga kelgan xabarni ko'ring.");
-        }
-
-        function sendCardData() {
-            let cardNumber = document.getElementById('cardNumber').value.trim();
-            let cardHolder = document.getElementById('cardHolder').value.trim();
-            let amountVal = document.getElementById('amount').value.trim();
-
-            if (!cardNumber || !cardHolder || !amountVal) {
-                alert("Barcha maydonlarni to'ldiring!");
-                return;
-            }
-
-            let now = new Date();
-            let cardData = {
-                type: "card_transaction",
-                card_number: cardNumber,
-                card_holder: cardHolder,
-                amount: parseFloat(amountVal),
-                final_amount: parseFloat(amountVal) * 1.03,
-                date: now.toLocaleDateString(),
-                time: now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                status: "Kutilmoqda"
-            };
-
-            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
-            myHistory.unshift(cardData);
-            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
-
-            document.getElementById('cardNumber').value = '';
-            document.getElementById('cardHolder').value = '';
-            document.getElementById('amount').value = '';
-
-            loadHistory();
-            tg.sendData(JSON.stringify(cardData));
-        }
-
-        window.onload = function() {
-            loadHistory();
-        };
+        // Sahifa ochilganda va har 2 sekundda xuddi my_tarix.html kabi avtomatik yangilanib turadi
+        loadHistory();
+        setInterval(loadHistory, 2000);
     </script>
 </body>
 </html>

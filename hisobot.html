@@ -43,8 +43,8 @@
             outline: none;
         }
         .form-row input[readonly] {
-            background-color: #cbd5e1;
-            color: #1e293b;
+            background-color: #94a3b8;
+            color: #0f172a;
             cursor: not-allowed;
         }
         .section-title {
@@ -126,33 +126,33 @@
         <div class="section-title">Minus:</div>
 
         <div class="form-row">
-            <label>📠 Terminal:</label>
+            <label>Terminal:</label>
             <input type="number" id="terminal" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>⛑️ Berildi:</label>
+            <label>Berildi:</label>
             <input type="number" id="berildi" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>💵 Kunlik:</label>
+            <label>Kunlik:</label>
             <input type="number" id="kunlik" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>🆓 Skidka:</label>
+            <label>Skidka:</label>
             <input type="number" id="skidka" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>🔴 Xarajat:</label>
+            <label>Xarajat:</label>
             <input type="number" id="xarajat" placeholder="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
-            <label>ℹ️ Comment:</label>
-            <input type="text" id="comment" placeholder="Izox yozishingiz mumkin">
+            <label>Comment:</label>
+            <input type="text" id="comment" placeholder="Izoh yozishingiz mumkin">
         </div>
 
         <div class="total-box">
@@ -167,13 +167,12 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Karta to'ldirish tarixidan bugungi tasdiqlangan +3% bilan barcha summani hisoblash
+        // Card (karta to'ldirish) bo'limidagi +3% bilan to'plangan summani hisoblab olish
         function loadCardTotal() {
             let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
             let totalCard = 0;
 
             history.forEach(item => {
-                // Agar status Tasdiqlandi bo'lsa yoki barchasini hisoblamoqchi bo'lsangiz
                 let finalAmt = parseFloat(item.final_amount || (item.amount * 1.03));
                 totalCard += finalAmt;
             });
@@ -182,7 +181,7 @@
             calculateTotal();
         }
 
-        // Jami topshiriladigan summani hisoblash (Plus - Minus)
+        // Barcha kirimlarni qo'shish va minuslarni ayirish
         function calculateTotal() {
             let paynet = parseFloat(document.getElementById('paynet').value) || 0;
             let card = parseFloat(document.getElementById('card').value) || 0;

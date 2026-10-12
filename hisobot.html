@@ -95,59 +95,59 @@
         
         <div class="form-row">
             <label>Paynet *:</label>
-            <input type="number" id="paynet" placeholder="0" oninput="calculateTotal()">
+            <input type="number" id="paynet" value="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>💳 Card (+3%):</label>
-            <input type="number" id="card" placeholder="0" readonly>
+            <input type="number" id="card" value="0" readonly>
         </div>
 
         <div class="form-row">
             <label>💰 Leviy *:</label>
-            <input type="number" id="leviy" placeholder="0" oninput="calculateTotal()">
+            <input type="number" id="leviy" value="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>🔌 SIMcard (dona) *:</label>
-            <input type="number" id="simcard" placeholder="0 dona">
+            <input type="number" id="simcard" value="0">
         </div>
 
         <div class="form-row">
             <label>💸 Qarzdorlik:</label>
-            <input type="number" id="qarzdorlik" placeholder="0" readonly>
+            <input type="number" id="qarzdorlik" value="0" readonly>
         </div>
 
         <div class="form-row">
             <label>📻 Qarz uchun *:</label>
-            <input type="number" id="qarz_uchun" placeholder="0" oninput="calculateTotal()">
+            <input type="number" id="qarz_uchun" value="0" oninput="calculateTotal()">
         </div>
 
         <div class="section-title">Minus:</div>
 
         <div class="form-row">
             <label>Terminal:</label>
-            <input type="number" id="terminal" placeholder="0" oninput="calculateTotal()">
+            <input type="number" id="terminal" value="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>Berildi (Tasdiqlangan):</label>
-            <input type="number" id="berildi" placeholder="0" readonly>
+            <input type="number" id="berildi" value="0" readonly>
         </div>
 
         <div class="form-row">
             <label>Kunlik:</label>
-            <input type="number" id="kunlik" placeholder="0" oninput="calculateTotal()">
+            <input type="number" id="kunlik" value="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>Skidka:</label>
-            <input type="number" id="skidka" placeholder="0" oninput="calculateTotal()">
+            <input type="number" id="skidka" value="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
             <label>Xarajat:</label>
-            <input type="number" id="xarajat" placeholder="0" oninput="calculateTotal()">
+            <input type="number" id="xarajat" value="0" oninput="calculateTotal()">
         </div>
 
         <div class="form-row">
@@ -219,71 +219,4 @@
 
             let finalTotal = plusTotal - minusTotal;
 
-            document.getElementById('totalDisplay').innerText = finalTotal.toLocaleString() + " so'm";
-            return finalTotal;
-        }
-
-        function sendReport() {
-            // Majburiy kiritiladigan maydonlar
-            const paynetVal = document.getElementById('paynet').value.trim();
-            const leviyVal = document.getElementById('leviy').value.trim();
-            const simcardVal = document.getElementById('simcard').value.trim();
-            const qarzUchunVal = document.getElementById('qarz_uchun').value.trim();
-
-            // Ixtiyoriy (Minus va Comment) maydonlar
-            const terminalVal = document.getElementById('terminal').value.trim();
-            const kunlikVal = document.getElementById('kunlik').value.trim();
-            const skidkaVal = document.getElementById('skidka').value.trim();
-            const xarajatVal = document.getElementById('xarajat').value.trim();
-            
-            let commentVal = document.getElementById('comment').value.trim();
-            if (!commentVal) {
-                commentVal = "Izoh yo'q";
-            }
-
-            const debtTotal = parseFloat(document.getElementById('qarzdorlik').value) || 0;
-            const qarzUchunNum = parseFloat(qarzUchunVal) || 0;
-
-            // 1. Faqat kirim bo'limidagi kiritiladigan maydonlar bo'sh emasligini tekshirish
-            if (paynetVal === "" || leviyVal === "" || simcardVal === "" || qarzUchunVal === "") {
-                alert("⚠️ Paynet, Leviy, SIMcard va Qarz uchun maydonlarini to'ldirish majburiy! (Mavjud bo'lmasa, 0 kiritib o'ting)");
-                return;
-            }
-
-            // 2. Qarz bo'lsa, "Qarz uchun" ga eng kamida 50 000 so'm kiritish sharti
-            if (debtTotal > 0) {
-                if (qarzUchunNum < 50000) {
-                    alert(`⚠️ Sizda ${debtTotal.toLocaleString()} so'm qarzdorlik mavjud!\n"Qarz uchun" maydoniga kamida 50 000 so'm kiritishingiz shart.`);
-                    return;
-                }
-            }
-
-            let finalTotal = calculateTotal();
-
-            const reportData = {
-                type: "daily_report",
-                paynet: parseFloat(paynetVal) || 0,
-                card: parseFloat(document.getElementById('card').value) || 0,
-                leviy: parseFloat(leviyVal) || 0,
-                simcard: parseInt(simcardVal) || 0,
-                qarzdorlik: debtTotal,
-                qarz_uchun: qarzUchunNum,
-                terminal: parseFloat(terminalVal) || 0,
-                berildi: parseFloat(document.getElementById('berildi').value) || 0,
-                kunlik: parseFloat(kunlikVal) || 0,
-                skidka: parseFloat(skidkaVal) || 0,
-                xarajat: parseFloat(xarajatVal) || 0,
-                total_final: finalTotal,
-                comment: commentVal
-            };
-
-            tg.sendData(JSON.stringify(reportData));
-        }
-
-        window.onload = function() {
-            loadCardTotal();
-            loadParamsFromURL();
-        };
-    </script>
-</body>
-</html>
+            document.getElementById('totalDisplay').innerText = finalTotal.toLocaleString() + " so

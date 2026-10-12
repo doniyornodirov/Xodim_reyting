@@ -131,8 +131,8 @@
         </div>
 
         <div class="form-row">
-            <label>Berildi:</label>
-            <input type="number" id="berildi" placeholder="0" oninput="calculateTotal()">
+            <label>Berildi (Tasdiqlangan):</label>
+            <input type="number" id="berildi" placeholder="0" readonly>
         </div>
 
         <div class="form-row">
@@ -167,18 +167,28 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        function loadDebtFromURL() {
+        // URL manzilidan Qarzdorlik va Tasdiqlangan Berildi summalarini o'qib olish
+        function loadParamsFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const debtParam = urlParams.get('debt');
+            const givenParam = urlParams.get('given');
             
             if (debtParam !== null && debtParam !== "") {
                 document.getElementById('qarzdorlik').value = parseFloat(debtParam) || 0;
             } else {
                 document.getElementById('qarzdorlik').value = 0;
             }
+
+            if (givenParam !== null && givenParam !== "") {
+                document.getElementById('berildi').value = parseFloat(givenParam) || 0;
+            } else {
+                document.getElementById('berildi').value = 0;
+            }
+
             calculateTotal();
         }
 
+        // Card bo'limidagi +3% bilan hisoblangan summani olish
         function loadCardTotal() {
             let history = JSON.parse(localStorage.getItem('my_card_history')) || [];
             let totalCard = 0;
@@ -199,7 +209,6 @@
             let qarzdorlik = parseFloat(document.getElementById('qarzdorlik').value) || 0;
             let qarz_uchun = parseFloat(document.getElementById('qarz_uchun').value) || 0;
 
-            // SIMcard endi yig'indiga qo'shilmaydi
             let plusTotal = paynet + card + leviy + qarzdorlik + qarz_uchun;
 
             let terminal = parseFloat(document.getElementById('terminal').value) || 0;
@@ -224,7 +233,7 @@
                 paynet: parseFloat(document.getElementById('paynet').value) || 0,
                 card: parseFloat(document.getElementById('card').value) || 0,
                 leviy: parseFloat(document.getElementById('leviy').value) || 0,
-                simcard: parseInt(document.getElementById('simcard').value) || 0, // Dona ko'rinishida
+                simcard: parseInt(document.getElementById('simcard').value) || 0,
                 qarzdorlik: parseFloat(document.getElementById('qarzdorlik').value) || 0,
                 qarz_uchun: parseFloat(document.getElementById('qarz_uchun').value) || 0,
                 terminal: parseFloat(document.getElementById('terminal').value) || 0,
@@ -241,7 +250,7 @@
 
         window.onload = function() {
             loadCardTotal();
-            loadDebtFromURL();
+            loadParamsFromURL();
         };
     </script>
 </body>

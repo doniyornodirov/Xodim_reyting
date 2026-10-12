@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qarzdorlik Boshqaruvi</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121824;
+            color: #ffffff;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        h2 {
+            font-size: 20px;
+            text-align: center;
+            color: #e5b352;
+            margin-bottom: 20px;
+        }
+        .employee-card {
+            background-color: #1e2636;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border-left: 4px solid #3b82f6;
+        }
+        .employee-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+        .employee-id {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+        .debt-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .debt-input-group input {
+            flex: 1;
+            padding: 10px;
+            background-color: #121824;
+            border: 1px solid #2a3447;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: bold;
+            outline: none;
+        }
+        .btn-save {
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-save:active {
+            background-color: #16a34a;
+        }
+        .btn-refresh {
+            width: 100%;
+            padding: 10px;
+            background-color: #2a3447;
+            color: #94a3b8;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💸 Xodimlar Qarzdorligi</h2>
+        <button class="btn-refresh" onclick="loadEmployees()">🔄 Ro'yxatni yangilash</button>
+        
+        <div id="employeeList">
+            <div style="color: #94a3b8; text-align: center; padding: 20px;">Xodimlar yuklanmoqda...</div>
+        </div>
+    </div>
 
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Xodimlar ro'yxatini va qarzdorliklarini yuklash uchun botga so'rov
+        function loadEmployees() {
+            tg.sendData(JSON.stringify({ action: "get_all_employees_debts" }));
+        }
+
+        // Xodimlarga qarzdorlik belgilash
+        function saveDebt(userId, inputId) {
+            let debtVal = document.getElementById(inputId).value;
+            
+            if (debtVal === "" || debtVal < 0) {
+                debtVal = 0;
+            }
+
+            const sendPayload = {
+                action: "update_debt",
+                user_id: userId,
+                debt: parseFloat(debtVal)
+            };
+
+            tg.sendData(JSON.stringify(sendPayload));
+        }
+
+        // Botdan kelgan javob bo'yicha ekranni chizish
+        window.addEventListener('message', function(event) {
+            // Zaruriy holatlar uchun tinglovchi
+        });
+
+        window.onload = function() {
+            loadEmployees();
+        };
+    </script>
+</body>
+</html>

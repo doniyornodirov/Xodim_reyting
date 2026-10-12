@@ -203,7 +203,6 @@
         }
 
         function syncAndLoad() {
-            // Hech qanday xabarnomasiz (alert'siz) botga sinxronlash so'rovini jo'natadi
             tg.sendData(JSON.stringify({ action: "sync_status" }));
             loadHistory();
         }
@@ -214,6 +213,7 @@
             let amount = document.getElementById('amount').value.trim();
 
             if (!cardNumber || !cardHolder || !amount) {
+                alert("Barcha maydonlarni to'ldiring!");
                 return;
             }
 

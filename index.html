@@ -175,16 +175,19 @@
                 let statusText = item.status || "Kutilmoqda 📌";
                 let borderColor = "#facc15";
 
-                if (statusText.includes("Tasdiqlandi")) {
+                // Status matnini to'g'ri tekshirish va rang berish
+                if (statusText.includes("Tasdiqlandi") || statusText === "Tasdiqlandi") {
                     statusClass = "status-tasdiqlandi";
                     borderColor = "#4ade80";
                     statusText = "Tasdiqlandi ✅";
-                } else if (statusText.includes("Rad")) {
+                } else if (statusText.includes("Rad") || statusText === "Rad etildi") {
                     statusClass = "status-rad";
                     borderColor = "#f87171";
                     statusText = "Rad etildi ❌";
                 } else {
-                    statusText = "Kutilmoqda 📌";
+                    statusClass = "status-kutilmoqda";
+                    borderColor = "#facc15";
+                    statusText = "Kutilmoqda ⏳";
                 }
 
                 html += `
@@ -203,10 +206,18 @@
         }
 
         function syncAndLoad() {
+            // Rahbar tasdiqlagach, tarixni yangilash uchun botga signal yuboramiz
             tg.sendData(JSON.stringify({ action: "sync_status" }));
+            
+            // Vaqtinchalik simulyatsiya yoki localStorage dagi oxirgi holatni qayta o'qish
             loadHistory();
+            alert("Tarix yangilandi!");
         }
 
+        // Agar rahbar guruhda tasdiqlasa yoki rad etsa, xodim o'zining alohida "my_tarix.html" sahifasida 
+        // to'g'ridan-to'g'ri bazadan o'qigani uchun u yerda avtomatik o'zgaradi. 
+        // Ushbu index.html dagi localStorage'ni yangilash uchun esa quyidagicha qilsak bo'ladi:
+        
         function sendCardData() {
             let cardNumber = document.getElementById('cardNumber').value.trim();
             let cardHolder = document.getElementById('cardHolder').value.trim();

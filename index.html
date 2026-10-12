@@ -118,9 +118,9 @@
             color: #4ade80;
             margin-bottom: 4px;
         }
-        .status-kutilmoqda { color: #facc15; }
-        .status-tasdiqlandi { color: #4ade80; }
-        .status-rad { color: #f87171; }
+        .status-kutilmoqda { color: #facc15; font-weight: bold; }
+        .status-tasdiqlandi { color: #4ade80; font-weight: bold; }
+        .status-rad { color: #f87171; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -149,77 +149,13 @@
         </div>
 
         <div id="historyList">
-            <div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo'sh.</div>
+            <div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Yuklanmoqda...</div>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-
-        function loadHistory() {
-            const container = document.getElementById('historyList');
-            
-            // Telegram CloudStorage dan ma'lumotlarni o'qiymiz
-            tg.CloudStorage.getItem('my_card_history', (err, value) => {
-                let history = [];
-                if (!err && value) {
-                    try {
-                        history = JSON.parse(value);
-                    } catch (e) {
-                        history = JSON.parse(localStorage.getItem('my_card_history')) || [];
-                    }
-                } else {
-                    history = JSON.parse(localStorage.getItem('my_card_history')) || [];
-                }
-
-                if (!Array.isArray(history) || history.length === 0) {
-                    container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
-                    return;
-                }
-
-                let html = '';
-                history.forEach(item => {
-                    let formattedAmount = Number(item.amount || 0).toLocaleString();
-                    let formattedFinal = Number(item.final_amount || (item.amount ? item.amount * 1.03 : 0)).toLocaleString();
-                    
-                    let statusClass = "status-kutilmoqda";
-                    let statusText = item.status || "Kutilmoqda";
-                    let borderColor = "#facc15";
-
-                    if (statusText === "Tasdiqlandi" || statusText.includes("Tasdiqlandi")) {
-                        statusClass = "status-tasdiqlandi";
-                        borderColor = "#4ade80";
-                        statusText = "Tasdiqlandi ✅";
-                    } else if (statusText === "Rad etildi" || statusText.includes("Rad")) {
-                        statusClass = "status-rad";
-                        borderColor = "#f87171";
-                        statusText = "Rad etildi ❌";
-                    } else {
-                        statusClass = "status-kutilmoqda";
-                        borderColor = "#facc15";
-                        statusText = "Kutilmoqda ⏳";
-                    }
-
-                    html += `
-                        <div class="history-card" style="border-left-color: ${borderColor};">
-                            <div class="card-header-row">
-                                <span>📅 ${item.date || ''} ⏰ ${item.time || ''}</span>
-                                <span class="${statusClass}" style="font-weight: bold;">${statusText}</span>
-                            </div>
-                            <div class="card-number">💳 ${item.card_number || ''}</div>
-                            <div class="card-holder">👤 ${item.card_holder || ''}</div>
-                            <div class="card-amounts">💰 Asl: ${formattedAmount} so'm ➔ <span style="color:#ffffff;">+3%: ${formattedFinal} so'm</span></div>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
-            });
-
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
-            }
-        }
 
         function sendCardData() {
             let cardNumber = document.getElementById('cardNumber').value.trim();
@@ -231,11 +167,13 @@
                 return;
             }
 
+            let entryId = Date.now();
             let now = new Date();
             let dateStr = now.toLocaleDateString();
             let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
             let cardData = {
+                id: entryId,
                 type: "card_transaction",
                 card_number: cardNumber,
                 card_holder: cardHolder,
@@ -246,33 +184,85 @@
                 status: "Kutilmoqda"
             };
 
-            tg.CloudStorage.getItem('my_card_history', (err, value) => {
-                let myHistory = [];
-                if (!err && value) {
-                    try { myHistory = JSON.parse(value); } catch(e) {}
-                }
-                if (!Array.isArray(myHistory) || myHistory.length === 0) {
-                    myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
-                }
+            // Rahbar paneli va umumiy sinxronizatsiya uchun saqlash
+            let adminHistory = JSON.parse(localStorage.getItem('admin_card_history')) || [];
+            adminHistory.unshift(cardData);
+            localStorage.setItem('admin_card_history', JSON.stringify(adminHistory));
 
-                myHistory.unshift(cardData);
-                
-                // Telegram CloudStorage va LocalStorage ga saqlaymiz
-                tg.CloudStorage.setItem('my_card_history', JSON.stringify(myHistory));
-                localStorage.setItem('my_card_history', JSON.stringify(myHistory));
+            // Xodimning shaxsiy tarixiga saqlash
+            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            myHistory.unshift(cardData);
+            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
-                document.getElementById('cardNumber').value = '';
-                document.getElementById('cardHolder').value = '';
-                document.getElementById('amount').value = '';
+            document.getElementById('cardNumber').value = '';
+            document.getElementById('cardHolder').value = '';
+            document.getElementById('amount').value = '';
 
-                loadHistory();
-                tg.sendData(JSON.stringify(cardData));
-            });
+            loadHistory();
+            tg.sendData(JSON.stringify(cardData));
         }
 
-        window.onload = function() {
-            loadHistory();
-        };
+        function loadHistory() {
+            const container = document.getElementById('historyList');
+            
+            let adminHistory = JSON.parse(localStorage.getItem('admin_card_history')) || [];
+            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+
+            // Rahbar tomonidan status o'zgargan bo'lsa, xodim tarixida ham yangilaymiz
+            myHistory.forEach(myItem => {
+                let found = adminHistory.find(adm => adm.id === myItem.id);
+                if (found) {
+                    myItem.status = found.status;
+                }
+            });
+            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
+
+            if (myHistory.length === 0) {
+                container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
+                return;
+            }
+
+            let html = '';
+            myHistory.forEach(item => {
+                let formattedAmount = Number(item.amount || 0).toLocaleString();
+                let formattedFinal = Number(item.final_amount || (item.amount ? item.amount * 1.03 : 0)).toLocaleString();
+                
+                let statusClass = "status-kutilmoqda";
+                let statusText = item.status || "Kutilmoqda";
+                let borderColor = "#facc15";
+
+                if (statusText === "Tasdiqlandi" || statusText.includes("Tasdiqlandi")) {
+                    statusClass = "status-tasdiqlandi";
+                    borderColor = "#4ade80";
+                    statusText = "Tasdiqlandi ✅";
+                } else if (statusText === "Rad etildi" || statusText.includes("Rad")) {
+                    statusClass = "status-rad";
+                    borderColor = "#f87171";
+                    statusText = "Rad etildi ❌";
+                } else {
+                    statusClass = "status-kutilmoqda";
+                    borderColor = "#facc15";
+                    statusText = "Kutilmoqda ⏳";
+                }
+
+                html += `
+                    <div class="history-card" style="border-left-color: ${borderColor};">
+                        <div class="card-header-row">
+                            <span>📅 ${item.date || ''} ⏰ ${item.time || ''}</span>
+                            <span class="${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="card-number">💳 ${item.card_number || ''}</div>
+                        <div class="card-holder">👤 ${item.card_holder || ''}</div>
+                        <div class="card-amounts">💰 Asl: ${formattedAmount} so'm ➔ <span style="color:#ffffff;">+3%: ${formattedFinal} so'm</span></div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Sahifa ochilganda va har 2 sekundda avtomatik yangilanib turadi
+        loadHistory();
+        setInterval(loadHistory, 2000);
     </script>
 </body>
 </html>

@@ -184,11 +184,6 @@
                 status: "Kutilmoqda"
             };
 
-            let adminHistory = JSON.parse(localStorage.getItem('admin_card_history')) || [];
-            adminHistory.unshift(cardData);
-            if (adminHistory.length > 30) adminHistory = adminHistory.slice(0, 30);
-            localStorage.setItem('admin_card_history', JSON.stringify(adminHistory));
-
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
             myHistory.unshift(cardData);
             if (myHistory.length > 30) myHistory = myHistory.slice(0, 30);
@@ -200,21 +195,12 @@
 
             loadHistory();
             tg.sendData(JSON.stringify(cardData));
+            alert("Muvaffaqiyatli yuborildi!");
         }
 
         function loadHistory() {
             const container = document.getElementById('historyList');
-            
-            let adminHistory = JSON.parse(localStorage.getItem('admin_card_history')) || [];
             let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
-
-            myHistory.forEach(myItem => {
-                let found = adminHistory.find(adm => adm.id === myItem.id);
-                if (found) {
-                    myItem.status = found.status;
-                }
-            });
-            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
 
             if (myHistory.length === 0) {
                 container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
@@ -222,7 +208,7 @@
             }
 
             let html = '';
-            myHistory.forEach(item => {
+            myHistory.forEach((item, index) => {
                 let formattedAmount = Number(item.amount || 0).toLocaleString();
                 let formattedFinal = Number(item.final_amount || (item.amount ? item.amount * 1.03 : 0)).toLocaleString();
                 
@@ -253,10 +239,24 @@
                         <div class="card-number">💳 ${item.card_number || ''}</div>
                         <div class="card-holder">👤 ${item.card_holder || ''}</div>
                         <div class="card-amounts">💰 Asl: ${formattedAmount} so'm ➔ <span style="color:#ffffff;">+3%: ${formattedFinal} so'm</span></div>
+                        <div style="margin-top: 8px; text-align: right;">
+                            <button onclick="changeStatus(${index}, 'Tasdiqlandi')" style="background:#22c55e; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px;">✅ Tasdiqlash</button>
+                            <button onclick="changeStatus(${index}, 'Rad etildi')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:5px;">❌ Rad etish</button>
+                        </div>
                     </div>
                 `;
             });
             container.innerHTML = html;
+        }
+
+        // Test uchun yoki o'zingiz bosib tekshirishingiz uchun statusni o'zgartiruvchi yordamchi funksiya
+        function changeStatus(index, newStatus) {
+            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
+            if (myHistory[index]) {
+                myHistory[index].status = newStatus;
+                localStorage.setItem('my_card_history', JSON.stringify(myHistory));
+                loadHistory();
+            }
         }
 
         loadHistory();

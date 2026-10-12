@@ -3,264 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karta To'ldirish</title>
+    <title>Hisobot va Tarix</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121824;
-            color: #ffffff;
-            padding: 15px;
-            margin: 0;
+        :root {
+            --bg-color: #121824;
+            --card-bg: #1e2638;
+            --text-color: #ffffff;
+            --text-secondary: #9aa4bf;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --input-bg: #161c2a;
+            --border-color: #2e384e;
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
         .container {
-            max-width: 500px;
+            max-width: 480px;
             margin: 0 auto;
         }
-        h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-        .warning {
-            background-color: rgba(255, 193, 7, 0.1);
-            border: 1px solid #ffc107;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #ffc107;
-            margin-bottom: 20px;
-        }
+
+        /* Forma uslublari */
         .form-group {
-            background-color: #1e2636;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 14px;
         }
-        label {
-            font-size: 13px;
-            color: #94a3b8;
-            display: block;
-            margin-bottom: 6px;
-        }
-        input {
+
+        .form-input {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background-color: #121824;
-            border: 1px solid #2a3447;
-            border-radius: 8px;
-            color: #ffffff;
+            padding: 12px 16px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
             box-sizing: border-box;
-            font-size: 16px;
+            outline: none;
         }
+
         .btn-submit {
             width: 100%;
             padding: 14px;
-            background-color: #22c55e;
+            background-color: var(--accent-green);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            margin-bottom: 24px;
         }
+
+        /* Tarix uslublari */
         .history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 20px 0 12px 0;
+            margin-bottom: 12px;
         }
+
         .history-title {
             font-size: 18px;
             font-weight: bold;
-            color: #ffffff;
         }
+
         .btn-refresh {
-            background-color: #2a3447;
-            color: #94a3b8;
-            border: none;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
             padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
+            font-size: 13px;
             cursor: pointer;
-            font-size: 12px;
         }
+
         .history-card {
-            background-color: #1e2636;
-            padding: 14px;
+            background-color: var(--card-bg);
             border-radius: 12px;
+            padding: 14px;
             margin-bottom: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border-left: 4px solid #ffc107;
+            border-left: 4px solid var(--accent-yellow);
         }
-        .card-header-row {
+
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
         }
+
         .card-number {
             font-size: 16px;
             font-weight: bold;
-            color: #ffffff;
+            color: #fff;
             margin-bottom: 4px;
         }
-        .card-holder {
-            font-size: 13px;
-            color: #94a3b8;
+
+        .card-user {
+            font-size: 14px;
+            color: var(--text-secondary);
             margin-bottom: 6px;
         }
-        .card-amounts {
-            font-size: 14px;
-            font-weight: bold;
-            color: #4ade80;
-            margin-bottom: 4px;
+
+        .card-amount {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--accent-green);
         }
-        .status-wait { color: #ffc107; font-weight: bold; }
-        .status-ok { color: #4caf50; font-weight: bold; }
-        .status-no { color: #ff3b30; font-weight: bold; }
+
+        /* Status nishonlari */
+        .status-badge {
+            font-size: 13px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .status-pending { color: var(--accent-yellow); }
+        .status-approved { color: var(--accent-green); }
+        .status-rejected { color: var(--accent-red); }
+
+        .card-pending { border-left-color: var(--accent-yellow); }
+        .card-approved { border-left-color: var(--accent-green); }
+        .card-rejected { border-left-color: var(--accent-red); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Karta To'ldirish</h2>
-        <div class="warning">
-            ⚠️ Sizning birgina e'tiborsizligingiz, sizni moliyaviy qiyinchilikka solib qo'yadi!
-        </div>
 
-        <div class="form-group">
-            <label>16 xonali karta raqami:</label>
-            <input type="text" id="cardNumber" placeholder="8600 0000 0000 0000" maxlength="19">
+<div class="container">
 
-            <label>Karta egasi:</label>
-            <input type="text" id="cardHolder" placeholder="Ism Familiya">
+    <!-- FORMA -->
+    <div class="form-group">
+        <input type="text" id="userName" class="form-input" placeholder="Ism Familiya">
+    </div>
+    <div class="form-group">
+        <input type="number" id="amount" class="form-input" placeholder="Summani kiriting (so'm)">
+    </div>
+    <button class="btn-submit" onclick="sendData()">Guruhga yuborish</button>
 
-            <label>Summa (so'm):</label>
-            <input type="number" id="amount" placeholder="Summani kiriting (so'm)">
-
-            <button class="btn-submit" onclick="sendCardData()">Guruhga yuborish</button>
-        </div>
-
-        <div class="history-header">
-            <div class="history-title">Mening Tarixatim</div>
-            <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
-        </div>
-
-        <div id="historyList">
-            <div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Yuklanmoqda...</div>
-        </div>
+    <!-- TARIX BO'LIMI -->
+    <div class="history-header">
+        <span class="history-title">Mening Tarixim</span>
+        <button class="btn-refresh" onclick="loadHistory()">🔄 Yangilash</button>
     </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+    <!-- CARDS CONTAINER (Karta ro'yxati chiqadigan joy) -->
+    <div id="historyContainer">
+        <!-- Javascript orqali yuklanadi -->
+    </div>
 
-        function sendCardData() {
-            let cardNumber = document.getElementById('cardNumber').value.trim();
-            let cardHolder = document.getElementById('cardHolder').value.trim();
-            let amountVal = document.getElementById('amount').value.trim();
+</div>
 
-            if (!cardNumber || !cardHolder || !amountVal) {
-                alert("Barcha maydonlarni to'ldiring!");
+<script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+
+    // Serveringiz manzili (Render URL)
+    const API_URL = window.location.origin;
+
+    // Tarixni yuklash funksiyasi
+    async function loadHistory() {
+        try {
+            const response = await fetch(`${API_URL}/api/history`);
+            const data = await response.json();
+            
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); text-align: center;">Tarix mavjud emas</div>';
                 return;
             }
 
-            let entryId = Date.now();
-            let now = new Date();
-            let dateStr = now.toLocaleDateString();
-            let timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            data.forEach(item => {
+                let statusText = 'Kutilmoqda ⏳';
+                let statusClass = 'status-pending';
+                let cardClass = 'card-pending';
 
-            let cardData = {
-                id: entryId,
-                type: "card_transaction",
-                card_number: cardNumber,
-                card_holder: cardHolder,
-                amount: parseFloat(amountVal),
-                final_amount: parseFloat(amountVal) * 1.03,
-                date: dateStr,
-                time: timeStr,
-                status: "Kutilmoqda"
-            };
-
-            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
-            myHistory.unshift(cardData);
-            if (myHistory.length > 30) myHistory = myHistory.slice(0, 30);
-            localStorage.setItem('my_card_history', JSON.stringify(myHistory));
-
-            document.getElementById('cardNumber').value = '';
-            document.getElementById('cardHolder').value = '';
-            document.getElementById('amount').value = '';
-
-            loadHistory();
-            tg.sendData(JSON.stringify(cardData));
-            alert("Muvaffaqiyatli yuborildi!");
-        }
-
-        function loadHistory() {
-            const container = document.getElementById('historyList');
-            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
-
-            if (myHistory.length === 0) {
-                container.innerHTML = '<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 10px;">Hozircha tarix bo\'sh.</div>';
-                return;
-            }
-
-            let html = '';
-            myHistory.forEach((item, index) => {
-                let formattedAmount = Number(item.amount || 0).toLocaleString();
-                let formattedFinal = Number(item.final_amount || (item.amount ? item.amount * 1.03 : 0)).toLocaleString();
-                
-                let statusClass = "status-wait";
-                let statusText = item.status || "Kutilmoqda";
-                let borderColor = "#ffc107";
-
-                if (statusText === "Tasdiqlandi" || statusText.includes("Tasdiqlandi")) {
-                    statusClass = "status-ok";
-                    borderColor = "#4caf50";
-                    statusText = "Tasdiqlandi ✅";
-                } else if (statusText === "Rad etildi" || statusText.includes("Rad")) {
-                    statusClass = "status-no";
-                    borderColor = "#ff3b30";
-                    statusText = "Rad etildi ❌";
-                } else {
-                    statusClass = "status-wait";
-                    borderColor = "#ffc107";
-                    statusText = "Kutilmoqda ⏳";
+                if (item.status === 'approved' || item.status === 'Tasdiqlandi') {
+                    statusText = 'Tasdiqlandi ✅';
+                    statusClass = 'status-approved';
+                    cardClass = 'card-approved';
+                } else if (item.status === 'rejected' || item.status === 'Rad etildi') {
+                    statusText = 'Rad etildi ❌';
+                    statusClass = 'status-rejected';
+                    cardClass = 'card-rejected';
                 }
 
-                html += `
-                    <div class="history-card" style="border-left-color: ${borderColor};">
-                        <div class="card-header-row">
-                            <span>📅 ${item.date || ''} ⏰ ${item.time || ''}</span>
-                            <span class="${statusClass}">${statusText}</span>
+                const cardHtml = `
+                    <div class="history-card ${cardClass}">
+                        <div class="card-header">
+                            <span>📅 ${item.date \vert{}\vert{} ''} ⏰${item.time || ''}</span>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
                         </div>
-                        <div class="card-number">💳 ${item.card_number || ''}</div>
-                        <div class="card-holder">👤 ${item.card_holder || ''}</div>
-                        <div class="card-amounts">💰 Asl: ${formattedAmount} so'm ➔ <span style="color:#ffffff;">+3%: ${formattedFinal} so'm</span></div>
-                        <div style="margin-top: 8px; text-align: right;">
-                            <button onclick="changeStatus(${index}, 'Tasdiqlandi')" style="background:#22c55e; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px;">✅ Tasdiqlash</button>
-                            <button onclick="changeStatus(${index}, 'Rad etildi')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; margin-left:5px;">❌ Rad etish</button>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        // Test uchun yoki o'zingiz bosib tekshirishingiz uchun statusni o'zgartiruvchi yordamchi funksiya
-        function changeStatus(index, newStatus) {
-            let myHistory = JSON.parse(localStorage.getItem('my_card_history')) || [];
-            if (myHistory[index]) {
-                myHistory[index].status = newStatus;
-                localStorage.setItem('my_card_history', JSON.stringify(myHistory));
-                loadHistory();
-            }
-        }
-
-        loadHistory();
-        setInterval(loadHistory, 2000);
-    </script>
-</body>
-</html>
+                        <div class="card-number">💳 ${item.card_number || '---'}</div>
+                        <div
